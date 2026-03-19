@@ -1705,7 +1705,7 @@ var DUMMY_SUMMARY = {
   totalAmount: 15840,
   fraudSavings: 94200,
   aiAccuracy: '94.2%',
-  period: 'March 1–19, 2026',
+  period: 'March 1-19, 2026',
   generatedBy: 'Admin Director',
   generatedAt: new Date().toLocaleString('en-PH', { timeZone:'Asia/Manila' })
 };
@@ -1744,6 +1744,53 @@ async function logExportToSupabase(reportType, recordCount) {
 }
 
 // ══════════════════════════════════════════
+// HTML ENTITY DECODER — used by all PDF functions
+// jsPDF's built-in Helvetica font does NOT support
+// Unicode characters like ₱ — or special symbols.
+// pdfSafe() converts them to ASCII equivalents.
+// ══════════════════════════════════════════
+function decodeHtml(str) {
+  if (!str) return '';
+  return String(str)
+    .replace(/&#8369;/g, 'PHP ')
+    .replace(/&mdash;/g, ' - ')
+    .replace(/&ndash;/g, '-')
+    .replace(/&middot;/g, '.')
+    .replace(/&bull;/g, '-')
+    .replace(/&amp;/g, '&')
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&quot;/g, '"')
+    .replace(/&apos;/g, "'")
+    .replace(/&nbsp;/g, ' ')
+    .replace(/&le;/g, '<=')
+    .replace(/&ge;/g, '>=')
+    .replace(/&harr;/g, '<->')
+    .replace(/&#(\d+);/g, function(m, n) { try { return String.fromCharCode(parseInt(n,10)); } catch(e) { return ''; } })
+    .replace(/&#x([0-9a-fA-F]+);/g, function(m, h) { try { return String.fromCharCode(parseInt(h,16)); } catch(e) { return ''; } });
+}
+
+// Convert any string to ASCII-safe text for jsPDF (Helvetica has no Unicode)
+function pdfSafe(str) {
+  if (!str) return '';
+  // Handle arrays (jsPDF multi-line text)
+  if (Array.isArray(str)) return str.map(function(s) { return pdfSafe(s); });
+  return decodeHtml(String(str))
+    .replace(/[\u20B1]/g, 'PHP ')    // ₱ Peso
+    .replace(/[\u2014]/g, ' - ')     // — em dash
+    .replace(/[\u2013]/g, '-')       // – en dash
+    .replace(/[\u2019\u2018]/g, "'") // smart quotes
+    .replace(/[\u201C\u201D]/g, '"') // smart double quotes
+    .replace(/[\u2022]/g, '-')       // bullet
+    .replace(/[\u00B7]/g, '.')       // middle dot
+    .replace(/[\u2264]/g, '<=')      // ≤
+    .replace(/[\u2265]/g, '>=')      // ≥
+    .replace(/[\u2194]/g, '<->')     // ↔
+    .replace(/[\u2190-\u21FF]/g, '') // other arrows
+    .replace(/[^\x00-\x7F]/g, '?'); // any remaining non-ASCII -> ?
+}
+
+// ══════════════════════════════════════════
 // EXPORT FRAUD DETECTION REPORT AS PDF
 // ══════════════════════════════════════════
 async function exportFraudPDF() {
@@ -1776,23 +1823,23 @@ async function exportFraudPDF() {
   doc.setTextColor(255, 255, 255);
   doc.setFont('helvetica', 'bold');
   doc.setFontSize(20);
-  doc.text('TRACE AI', margin, 16);
+  doc.text(pdfSafe('TRACE AI'), margin, 16);
   doc.setFont('helvetica', 'normal');
   doc.setFontSize(9);
   doc.setTextColor(160, 200, 255);
-  doc.text('Healthcare Intelligence Platform', margin, 22);
+  doc.text(pdfSafe('Healthcare Intelligence Platform'), margin, 22);
 
   // Report title right side
   doc.setFont('helvetica', 'bold');
   doc.setFontSize(13);
   doc.setTextColor(255, 255, 255);
-  doc.text('FRAUD DETECTION REPORT', W - margin, 14, { align: 'right' });
+  doc.text(pdfSafe('FRAUD DETECTION REPORT'), W - margin, 14, { align: 'right' });
   doc.setFont('helvetica', 'normal');
   doc.setFontSize(8);
   doc.setTextColor(160, 200, 255);
-  doc.text('Period: ' + summary.period, W - margin, 20, { align: 'right' });
-  doc.text('Generated: ' + summary.generatedAt, W - margin, 26, { align: 'right' });
-  doc.text('Prepared by: ' + summary.generatedBy, W - margin, 32, { align: 'right' });
+  doc.text(pdfSafe('Period: ' + summary.period), W - margin, 20, { align: 'right' });
+  doc.text(pdfSafe('Generated: ' + summary.generatedAt), W - margin, 26, { align: 'right' });
+  doc.text(pdfSafe('Prepared by: ' + summary.generatedBy), W - margin, 32, { align: 'right' });
 
   // Status pill
   doc.setFillColor(8, 122, 82);
@@ -1800,7 +1847,7 @@ async function exportFraudPDF() {
   doc.setTextColor(255, 255, 255);
   doc.setFont('helvetica', 'bold');
   doc.setFontSize(8);
-  doc.text('● CONFIDENTIAL', margin + 19, 32.5, { align: 'center' });
+  doc.text(pdfSafe('* CONFIDENTIAL'), margin + 19, 32.5, { align: 'center' });
 
   var y = 48;
 
@@ -1808,7 +1855,7 @@ async function exportFraudPDF() {
   doc.setFont('helvetica', 'bold');
   doc.setFontSize(10);
   doc.setTextColor(15, 45, 100);
-  doc.text('EXECUTIVE SUMMARY', margin, y);
+  doc.text(pdfSafe('EXECUTIVE SUMMARY'), margin, y);
   doc.setDrawColor(15, 45, 100);
   doc.setLineWidth(0.5);
   doc.line(margin, y + 2, W - margin, y + 2);
@@ -1834,20 +1881,20 @@ async function exportFraudPDF() {
     doc.setTextColor(k.color[0], k.color[1], k.color[2]);
     doc.setFont('helvetica', 'bold');
     doc.setFontSize(18);
-    doc.text(k.value, bx + boxW / 2, y + 14, { align: 'center' });
+    doc.text(pdfSafe(k.value), bx + boxW / 2, y + 14, { align: 'center' });
     doc.setFontSize(7);
     doc.setFont('helvetica', 'normal');
     doc.setTextColor(80, 100, 130);
-    doc.text(k.label.toUpperCase(), bx + boxW / 2, y + 19.5, { align: 'center' });
+    doc.text(pdfSafe(k.label.toUpperCase()), bx + boxW / 2, y + 19.5, { align: 'center' });
   });
   y += 30;
 
   // Additional KPIs row
   var kpi2 = [
-    { label: 'Total Amount Flagged', value: '₱' + summary.totalAmount.toLocaleString() },
-    { label: 'Estimated Fraud Savings', value: '₱' + summary.fraudSavings.toLocaleString() },
+    { label: 'Total Amount Flagged', value: 'PHP ' + summary.totalAmount.toLocaleString() },
+    { label: 'Estimated Fraud Savings', value: 'PHP ' + summary.fraudSavings.toLocaleString() },
     { label: 'AI Detection Accuracy', value: summary.aiAccuracy },
-    { label: 'Fraud Risk Index', value: '68 / 100 — Elevated' }
+    { label: 'Fraud Risk Index', value: '68 / 100 - Elevated' }
   ];
   kpi2.forEach(function(k, i) {
     var bx = margin + i * (boxW + 3);
@@ -1858,11 +1905,11 @@ async function exportFraudPDF() {
     doc.setFont('helvetica', 'bold');
     doc.setFontSize(8);
     doc.setTextColor(15, 45, 100);
-    doc.text(k.value, bx + boxW / 2, y + 7, { align: 'center' });
+    doc.text(pdfSafe(k.value), bx + boxW / 2, y + 7, { align: 'center' });
     doc.setFont('helvetica', 'normal');
     doc.setFontSize(6.5);
     doc.setTextColor(100, 120, 150);
-    doc.text(k.label.toUpperCase(), bx + boxW / 2, y + 12, { align: 'center' });
+    doc.text(pdfSafe(k.label.toUpperCase()), bx + boxW / 2, y + 12, { align: 'center' });
   });
   y += 22;
 
@@ -1870,7 +1917,7 @@ async function exportFraudPDF() {
   doc.setFont('helvetica', 'bold');
   doc.setFontSize(10);
   doc.setTextColor(15, 45, 100);
-  doc.text('FRAUD CATEGORY BREAKDOWN', margin, y);
+  doc.text(pdfSafe('FRAUD CATEGORY BREAKDOWN'), margin, y);
   doc.setDrawColor(15, 45, 100);
   doc.setLineWidth(0.5);
   doc.line(margin, y + 2, W - margin, y + 2);
@@ -1895,7 +1942,7 @@ async function exportFraudPDF() {
     doc.setFont('helvetica', 'normal');
     doc.setFontSize(8);
     doc.setTextColor(30, 40, 60);
-    doc.text(cat.name, cx, cy + 4);
+    doc.text(pdfSafe(cat.name), cx, cy + 4);
 
     // Bar background
     doc.setFillColor(230, 236, 245);
@@ -1907,7 +1954,7 @@ async function exportFraudPDF() {
     doc.setFont('helvetica', 'bold');
     doc.setFontSize(7.5);
     doc.setTextColor(cat.color[0], cat.color[1], cat.color[2]);
-    doc.text(cat.pct + '%  (' + cat.count + ')', cx + catColW - 20, cy + 9.5);
+    doc.text(pdfSafe(cat.pct + '% (' + cat.count + ')'), cx + catColW - 20, cy + 9.5);
   });
   y += 36;
 
@@ -1915,7 +1962,7 @@ async function exportFraudPDF() {
   doc.setFont('helvetica', 'bold');
   doc.setFontSize(10);
   doc.setTextColor(15, 45, 100);
-  doc.text('FLAGGED CLAIMS DETAIL', margin, y);
+  doc.text(pdfSafe('FLAGGED CLAIMS DETAIL'), margin, y);
   doc.setDrawColor(15, 45, 100);
   doc.setLineWidth(0.5);
   doc.line(margin, y + 2, W - margin, y + 2);
@@ -1926,7 +1973,7 @@ async function exportFraudPDF() {
       c.id || c.claim_id || '',
       c.patient || c.patient_name || '',
       c.hospital || '',
-      '₱' + (c.amount || 0).toLocaleString(),
+      'PHP ' + (c.amount || 0).toLocaleString(),
       (c.riskScore || c.risk_score || 0) + '/100',
       c.riskLevel || c.risk_level || '',
       c.status || '',
@@ -1965,7 +2012,7 @@ async function exportFraudPDF() {
   doc.setFont('helvetica', 'bold');
   doc.setFontSize(10);
   doc.setTextColor(15, 45, 100);
-  doc.text('SUSPICIOUS PRESCRIPTION ACTIVITY', margin, y);
+  doc.text(pdfSafe('SUSPICIOUS PRESCRIPTION ACTIVITY'), margin, y);
   doc.setDrawColor(15, 45, 100);
   doc.line(margin, y + 2, W - margin, y + 2);
   y += 6;
@@ -2005,7 +2052,7 @@ async function exportFraudPDF() {
   doc.setFont('helvetica', 'bold');
   doc.setFontSize(10);
   doc.setTextColor(15, 45, 100);
-  doc.text('AI RECOMMENDATIONS & NEXT STEPS', margin, y);
+  doc.text(pdfSafe('AI RECOMMENDATIONS & NEXT STEPS'), margin, y);
   doc.setDrawColor(15, 45, 100);
   doc.line(margin, y + 2, W - margin, y + 2);
   y += 9;
@@ -2028,12 +2075,12 @@ async function exportFraudPDF() {
     doc.setFontSize(6);
     doc.setTextColor(255, 255, 255);
     var lines = doc.splitTextToSize(r.priority, 13);
-    doc.text(lines, margin + 8, y + 7, { align: 'center', baseline: 'middle' });
+    doc.text(pdfSafe(lines), margin + 8, y + 7, { align: 'center', baseline: 'middle' });
     doc.setFont('helvetica', 'normal');
     doc.setFontSize(7.5);
     doc.setTextColor(40, 55, 80);
     var bodyLines = doc.splitTextToSize(r.text, W - margin * 2 - 22);
-    doc.text(bodyLines, margin + 19, y + 5);
+    doc.text(pdfSafe(bodyLines), margin + 19, y + 5);
     y += 19;
   });
 
@@ -2051,11 +2098,11 @@ async function exportFraudPDF() {
     doc.setFont('helvetica', 'normal');
     doc.setFontSize(7);
     doc.setTextColor(100, 120, 150);
-    doc.text('TRACE AI Healthcare Intelligence Platform — CONFIDENTIAL. For internal use only.', margin, pageH - 7);
-    doc.text('Page ' + pg + ' of ' + totalPages, W - margin, pageH - 7, { align: 'right' });
+    doc.text(pdfSafe('TRACE AI Healthcare Intelligence Platform - CONFIDENTIAL. For internal use only.'), margin, pageH - 7);
+    doc.text(pdfSafe('Page ' + pg + ' of ' + totalPages), W - margin, pageH - 7, { align: 'right' });
     doc.setFont('helvetica', 'bold');
     doc.setTextColor(15, 45, 100);
-    doc.text('TraceAI', W / 2, pageH - 7, { align: 'center' });
+    doc.text(pdfSafe('TraceAI'), W / 2, pageH - 7, { align: 'center' });
   }
 
   // Save the PDF
@@ -2121,11 +2168,11 @@ function downloadReportPDF(title, period, summary, type) {
   doc.setFont('helvetica', 'bold');
   doc.setFontSize(20);
   doc.setTextColor(255, 255, 255);
-  doc.text('TRACE AI', margin, 16);
+  doc.text(pdfSafe('TRACE AI'), margin, 16);
   doc.setFont('helvetica', 'normal');
   doc.setFontSize(9);
   doc.setTextColor(160, 200, 255);
-  doc.text('Healthcare Intelligence Platform', margin, 22);
+  doc.text(pdfSafe('Healthcare Intelligence Platform'), margin, 22);
   doc.setFont('helvetica', 'bold');
   doc.setFontSize(13);
   doc.setTextColor(255, 255, 255);
@@ -2133,15 +2180,15 @@ function downloadReportPDF(title, period, summary, type) {
   doc.setFont('helvetica', 'normal');
   doc.setFontSize(8);
   doc.setTextColor(160, 200, 255);
-  doc.text('Period: ' + period, W - margin, 22, { align: 'right' });
-  doc.text('Generated: ' + new Date().toLocaleString('en-PH', { timeZone: 'Asia/Manila' }), W - margin, 28, { align: 'right' });
-  doc.text('Prepared by: Admin Director', W - margin, 34, { align: 'right' });
+  doc.text(pdfSafe('Period: ' + period), W - margin, 22, { align: 'right' });
+  doc.text(pdfSafe('Generated: ' + new Date().toLocaleString('en-PH', { timeZone: 'Asia/Manila' })), W - margin, 28, { align: 'right' });
+  doc.text(pdfSafe('Prepared by: Admin Director'), W - margin, 34, { align: 'right' });
   doc.setFillColor(8, 122, 82);
   doc.roundedRect(margin, 27, 38, 8, 2, 2, 'F');
   doc.setTextColor(255, 255, 255);
   doc.setFont('helvetica', 'bold');
   doc.setFontSize(8);
-  doc.text('● CONFIDENTIAL', margin + 19, 32.5, { align: 'center' });
+  doc.text(pdfSafe('* CONFIDENTIAL'), margin + 19, 32.5, { align: 'center' });
 
   var y = 50;
 
@@ -2149,7 +2196,7 @@ function downloadReportPDF(title, period, summary, type) {
   doc.setFont('helvetica', 'bold');
   doc.setFontSize(10);
   doc.setTextColor(15, 45, 100);
-  doc.text('REPORT SUMMARY', margin, y);
+  doc.text(pdfSafe('REPORT SUMMARY'), margin, y);
   doc.setDrawColor(15, 45, 100);
   doc.setLineWidth(0.5);
   doc.line(margin, y + 2, W - margin, y + 2);
@@ -2165,7 +2212,7 @@ function downloadReportPDF(title, period, summary, type) {
   doc.setFont('helvetica', 'normal');
   doc.setFontSize(9);
   doc.setTextColor(30, 50, 80);
-  doc.text(summaryLines, margin + 6, y + 9);
+  doc.text(pdfSafe(summaryLines), margin + 6, y + 9);
   y += boxH + 12;
 
   // Type-specific sections
@@ -2173,7 +2220,7 @@ function downloadReportPDF(title, period, summary, type) {
     doc.setFont('helvetica', 'bold');
     doc.setFontSize(10);
     doc.setTextColor(15, 45, 100);
-    doc.text('FRAUD RISK BREAKDOWN', margin, y);
+    doc.text(pdfSafe('FRAUD RISK BREAKDOWN'), margin, y);
     doc.line(margin, y + 2, W - margin, y + 2);
     y += 8;
     var metrics = [
@@ -2191,10 +2238,10 @@ function downloadReportPDF(title, period, summary, type) {
       doc.setFont('helvetica', 'normal');
       doc.setFontSize(8.5);
       doc.setTextColor(60, 80, 110);
-      doc.text(m.label, margin + 5, y + 7.5);
+      doc.text(pdfSafe(m.label), margin + 5, y + 7.5);
       doc.setFont('helvetica', 'bold');
       doc.setTextColor(m.color[0], m.color[1], m.color[2]);
-      doc.text(m.value, W - margin - 5, y + 7.5, { align: 'right' });
+      doc.text(pdfSafe(m.value), W - margin - 5, y + 7.5, { align: 'right' });
       y += 15;
     });
   }
@@ -2203,7 +2250,7 @@ function downloadReportPDF(title, period, summary, type) {
     doc.setFont('helvetica', 'bold');
     doc.setFontSize(10);
     doc.setTextColor(15, 45, 100);
-    doc.text('COMPLIANCE SCORES BY CATEGORY', margin, y);
+    doc.text(pdfSafe('COMPLIANCE SCORES BY CATEGORY'), margin, y);
     doc.line(margin, y + 2, W - margin, y + 2);
     y += 8;
     var scores = [
@@ -2218,14 +2265,14 @@ function downloadReportPDF(title, period, summary, type) {
       doc.setFont('helvetica', 'normal');
       doc.setFontSize(8.5);
       doc.setTextColor(30, 50, 80);
-      doc.text(s.name, margin, y + 5);
+      doc.text(pdfSafe(s.name), margin, y + 5);
       doc.setFillColor(225, 232, 245);
       doc.roundedRect(margin + 80, y, W - margin * 2 - 95, 7, 2, 2, 'F');
       doc.setFillColor(s.color[0], s.color[1], s.color[2]);
       doc.roundedRect(margin + 80, y, (W - margin * 2 - 95) * s.pct / 100, 7, 2, 2, 'F');
       doc.setFont('helvetica', 'bold');
       doc.setTextColor(s.color[0], s.color[1], s.color[2]);
-      doc.text(s.pct + '%', W - margin - 3, y + 5.5, { align: 'right' });
+      doc.text(pdfSafe(s.pct + '%'), W - margin - 3, y + 5.5, { align: 'right' });
       y += 13;
     });
   }
@@ -2234,7 +2281,7 @@ function downloadReportPDF(title, period, summary, type) {
     doc.setFont('helvetica', 'bold');
     doc.setFontSize(10);
     doc.setTextColor(15, 45, 100);
-    doc.text('ACTIVE INCIDENTS', margin, y);
+    doc.text(pdfSafe('ACTIVE INCIDENTS'), margin, y);
     doc.line(margin, y + 2, W - margin, y + 2);
     y += 8;
     doc.autoTable({
@@ -2274,8 +2321,8 @@ function downloadReportPDF(title, period, summary, type) {
     doc.setFont('helvetica', 'normal');
     doc.setFontSize(7);
     doc.setTextColor(100, 120, 150);
-    doc.text('TRACE AI Healthcare Intelligence Platform — CONFIDENTIAL', margin, pageH - 7);
-    doc.text('Page ' + pg + ' of ' + totalPages, W - margin, pageH - 7, { align: 'right' });
+    doc.text(pdfSafe('TRACE AI Healthcare Intelligence Platform - CONFIDENTIAL'), margin, pageH - 7);
+    doc.text(pdfSafe('Page ' + pg + ' of ' + totalPages), W - margin, pageH - 7, { align: 'right' });
   }
 
   var filename = 'TraceAI_' + title.replace(/\s+/g, '_') + '_' + period.replace(/\s+/g, '_') + '.pdf';
