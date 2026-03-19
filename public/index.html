@@ -274,6 +274,20 @@ html, body {
 .card-body { padding:15px 17px; }
 .card-action { font-size:11.5px; font-weight:600; color:var(--accent-blue); background:none; border:none; cursor:pointer; font-family:"DM Sans",sans-serif; padding:3px 0; }
 
+/* Chart canvas shimmer while loading */
+canvas { transition: opacity 0.3s; }
+canvas.chart-loading {
+  background: linear-gradient(90deg, var(--bg-card2) 25%, var(--bg-card) 50%, var(--bg-card2) 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.2s infinite;
+  border-radius: 6px;
+  opacity: 1 !important;
+}
+@keyframes shimmer {
+  0%   { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
 /* ===== CHART GRIDS ===== */
 .chart-2col { display:grid; grid-template-columns:2fr 1fr; gap:14px; }
 .chart-eq   { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
@@ -476,7 +490,7 @@ tr:hover td { background:rgba(30,85,152,0.03); }
 ::-webkit-scrollbar { width:4px; height:4px; }
 ::-webkit-scrollbar-thumb { background:var(--border); border-radius:2px; }
 ::-webkit-scrollbar-track { background:transparent; }
-canvas { width:100% !important; }
+canvas { display:block; }
 
 /* ===== RESPONSIVE ===== */
 
@@ -659,22 +673,22 @@ canvas { width:100% !important; }
         <div class="card-title"><svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>Fraud Detection Trends — 30 Days</div>
         <button class="card-action">Export</button>
       </div>
-      <div class="card-body"><canvas id="fraudTrend" height="200"></canvas></div>
+      <div class="card-body"><div style="position:relative;height:260px;width:100%"><canvas id="fraudTrend"></canvas></div></div>
     </div>
     <div class="card">
       <div class="card-head"><div class="card-title"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/></svg>Fraud Categories</div></div>
-      <div class="card-body"><canvas id="fraudPie" height="200"></canvas></div>
+      <div class="card-body"><div style="position:relative;height:260px;width:100%"><canvas id="fraudPie"></canvas></div></div>
     </div>
   </div>
 
   <div class="chart-eq" style="margin-bottom:14px">
     <div class="card">
       <div class="card-head"><div class="card-title"><svg viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>Claims per Hospital</div></div>
-      <div class="card-body"><canvas id="claimsBar" height="190"></canvas></div>
+      <div class="card-body"><div style="position:relative;height:240px;width:100%"><canvas id="claimsBar"></canvas></div></div>
     </div>
     <div class="card">
       <div class="card-head"><div class="card-title"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>Daily Safety Checks</div></div>
-      <div class="card-body"><canvas id="safetyLine" height="190"></canvas></div>
+      <div class="card-body"><div style="position:relative;height:240px;width:100%"><canvas id="safetyLine"></canvas></div></div>
     </div>
   </div>
 
@@ -725,7 +739,7 @@ canvas { width:100% !important; }
     </div>
     <div class="card">
       <div class="card-head"><div class="card-title"><svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>AI Detection Activity — 30 Days</div></div>
-      <div class="card-body"><canvas id="fraudArea" height="220"></canvas></div>
+      <div class="card-body"><div style="position:relative;height:280px;width:100%"><canvas id="fraudArea"></canvas></div></div>
     </div>
   </div>
 
@@ -806,7 +820,7 @@ canvas { width:100% !important; }
     </div>
     <div class="card">
       <div class="card-head"><div class="card-title"><svg viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>Health Incidents — Weekly</div></div>
-      <div class="card-body"><canvas id="incidentBar" height="240"></canvas></div>
+      <div class="card-body"><div style="position:relative;height:280px;width:100%"><canvas id="incidentBar"></canvas></div></div>
     </div>
   </div>
 
@@ -837,7 +851,7 @@ canvas { width:100% !important; }
 
   <div class="card">
     <div class="card-head"><div class="card-title"><svg viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>Daily Monitoring Activities by Hospital</div></div>
-    <div class="card-body"><canvas id="monitorBar" height="180"></canvas></div>
+    <div class="card-body"><div style="position:relative;height:280px;width:100%"><canvas id="monitorBar"></canvas></div></div>
   </div>
 </section>
 <section class="page" id="page-alerts">
@@ -868,17 +882,19 @@ canvas { width:100% !important; }
   <div class="chart-eq" style="margin-bottom:14px">
     <div class="card">
       <div class="card-head"><div class="card-title"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/></svg>Alerts by Category</div></div>
-      <div class="card-body"><canvas id="alertPie" height="200"></canvas></div>
+      <div class="card-body"><div style="position:relative;height:280px;width:100%"><canvas id="alertPie"></canvas></div></div>
     </div>
     <div class="card">
       <div class="card-head"><div class="card-title"><svg viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>Alerts by Hospital</div></div>
-      <div class="card-body" style="padding-top:16px">
-        <div class="comp-item"><div class="comp-head"><span class="comp-name">Metro General</span><span class="comp-pct" style="color:var(--accent-red)">14</span></div><div class="comp-track"><div class="comp-bar" style="width:85%;background:var(--accent-red)"></div></div></div>
-        <div class="comp-item"><div class="comp-head"><span class="comp-name">City Medical Center</span><span class="comp-pct" style="color:var(--accent-orange)">9</span></div><div class="comp-track"><div class="comp-bar" style="width:58%;background:var(--accent-orange)"></div></div></div>
-        <div class="comp-item"><div class="comp-head"><span class="comp-name">National Health Inst.</span><span class="comp-pct" style="color:var(--accent-yellow)">7</span></div><div class="comp-track"><div class="comp-bar" style="width:45%;background:var(--accent-yellow)"></div></div></div>
-        <div class="comp-item"><div class="comp-head"><span class="comp-name">St. Luke's Hospital</span><span class="comp-pct" style="color:var(--accent-cyan)">5</span></div><div class="comp-track"><div class="comp-bar" style="width:32%;background:var(--accent-cyan)"></div></div></div>
-        <div class="comp-item"><div class="comp-head"><span class="comp-name">Riverside Medical</span><span class="comp-pct" style="color:var(--accent-green)">2</span></div><div class="comp-track"><div class="comp-bar" style="width:13%;background:var(--accent-green)"></div></div></div>
-        <div style="margin-top:8px"><canvas id="alertLine" height="120"></canvas></div>
+      <div class="card-body" style="padding-top:16px;display:flex;flex-direction:column;justify-content:space-between">
+        <div>
+          <div class="comp-item"><div class="comp-head"><span class="comp-name">Metro General</span><span class="comp-pct" style="color:var(--accent-red)">14</span></div><div class="comp-track"><div class="comp-bar" style="width:85%;background:var(--accent-red)"></div></div></div>
+          <div class="comp-item"><div class="comp-head"><span class="comp-name">City Medical Center</span><span class="comp-pct" style="color:var(--accent-orange)">9</span></div><div class="comp-track"><div class="comp-bar" style="width:58%;background:var(--accent-orange)"></div></div></div>
+          <div class="comp-item"><div class="comp-head"><span class="comp-name">National Health Inst.</span><span class="comp-pct" style="color:var(--accent-yellow)">7</span></div><div class="comp-track"><div class="comp-bar" style="width:45%;background:var(--accent-yellow)"></div></div></div>
+          <div class="comp-item"><div class="comp-head"><span class="comp-name">St. Luke's Hospital</span><span class="comp-pct" style="color:var(--accent-cyan)">5</span></div><div class="comp-track"><div class="comp-bar" style="width:32%;background:var(--accent-cyan)"></div></div></div>
+          <div class="comp-item"><div class="comp-head"><span class="comp-name">Riverside Medical</span><span class="comp-pct" style="color:var(--accent-green)">2</span></div><div class="comp-track"><div class="comp-bar" style="width:13%;background:var(--accent-green)"></div></div></div>
+        </div>
+        <div style="margin-top:8px;position:relative;height:160px;width:100%"><canvas id="alertLine"></canvas></div>
       </div>
     </div>
   </div>
@@ -949,7 +965,7 @@ canvas { width:100% !important; }
   </div>
   <div class="card">
     <div class="card-head"><div class="card-title"><svg viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>Report Volume — Last 6 Months</div></div>
-    <div class="card-body"><canvas id="reportsBar" height="180"></canvas></div>
+    <div class="card-body"><div style="position:relative;height:280px;width:100%"><canvas id="reportsBar"></canvas></div></div>
   </div>
 </section>
 <section class="page" id="page-insights">
@@ -969,7 +985,7 @@ canvas { width:100% !important; }
   <div class="sec-label">AI Detection Feed</div>
   <div class="card">
     <div class="card-head"><div class="card-title"><svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>Prediction Confidence Trends</div></div>
-    <div class="card-body"><canvas id="insightsLine" height="180"></canvas></div>
+    <div class="card-body"><div style="position:relative;height:280px;width:100%"><canvas id="insightsLine"></canvas></div></div>
   </div>
   <div class="card">
     <div class="card-head"><div class="card-title"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/></svg>Top AI Findings Today</div><button class="card-action">Full Analysis</button></div>
@@ -1487,12 +1503,14 @@ function showPage(id, el) {
   document.getElementById('page-title').innerHTML = PAGE_TITLES[id] || id;
   window.scrollTo(0, 0);
   closeSidebar();
-  // Destroy existing charts for this page then redraw after layout settles
   Object.keys(chartInst).forEach(function(k) {
     try { chartInst[k].destroy(); } catch(e) {}
     delete chartInst[k];
   });
-  setTimeout(function() { renderCharts(id); }, 80);
+  document.querySelectorAll('#page-' + id + ' canvas').forEach(function(c) {
+    c.classList.remove('chart-loading');
+  });
+  setTimeout(function() { renderCharts(id); }, 50);
 }
 
 // ── CHIPS ──
@@ -1524,7 +1542,7 @@ function makeBase() {
   var c = getColors();
   return {
     responsive: true,
-    maintainAspectRatio: true,
+    maintainAspectRatio: false,
     plugins: {
       legend: { display: false },
       tooltip: {
@@ -1561,7 +1579,7 @@ function makeDnut(el, labels, vals, colors) {
       datasets: [{ data: vals, backgroundColor: colors, borderWidth: 2, borderColor: c.ttBg, hoverOffset: 8 }]
     },
     options: {
-      responsive: true, maintainAspectRatio: true, cutout: '64%',
+      responsive: true, maintainAspectRatio: false, cutout: '64%',
       plugins: {
         legend: { display: true, position: 'bottom', labels: { color: c.leg, font: { size: 9 }, boxWidth: 8, padding: 5 } },
         tooltip: makeBase().plugins.tooltip
@@ -2072,18 +2090,19 @@ document.querySelectorAll('.chip').forEach(function(c) {
 // ── CHARTS ──
 var chartInst = {};
 
-// Render immediately so charts appear on load, then destroy and
-// re-render after 400ms once the full layout has settled.
-// This replicates exactly what the theme toggle does (destroy + redraw)
-// which is why toggling dark mode always showed the correct layout.
-renderCharts('overview');
+// Add shimmer to all canvases while waiting for layout to settle
+document.querySelectorAll('canvas').forEach(function(c) {
+  c.classList.add('chart-loading');
+});
+
+// 50ms is enough — fixed-height wrappers mean Chart.js always has
+// correct dimensions to read. No broken first render, no visible delay.
 setTimeout(function() {
-  Object.keys(chartInst).forEach(function(k) {
-    try { chartInst[k].destroy(); } catch(e) {}
-    delete chartInst[k];
+  document.querySelectorAll('canvas').forEach(function(c) {
+    c.classList.remove('chart-loading');
   });
   renderCharts('overview');
-}, 400);
+}, 50);
 
 </script>
 </body>
