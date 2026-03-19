@@ -24,10 +24,10 @@
   --shadow:0 2px 10px rgba(20,60,120,0.08);
   --shadow-md:0 6px 24px rgba(20,60,120,0.13);
   --text-primary:#0a0f1a;
-  --text-secondary:#2a3d52;
-  --text-muted:#4a607a;
-  --text-sidebar:#3a4d62;
-  --text-sidebar-dim:rgba(58,77,98,0.4);
+  --text-secondary:#1a2d42;
+  --text-muted:#3a5068;
+  --text-sidebar:#1a2d42;
+  --text-sidebar-dim:#5a7290;
   --accent-blue:#1a5598;
   --accent-gold:#b87c08;
   --accent-red:#c83558;
@@ -52,32 +52,32 @@
   --bg-card2:#0d2244;
   --bg-topbar:rgba(4,13,26,0.95);
   --sidebar-bg:#040d1a;
-  --sidebar-border:rgba(255,255,255,0.05);
-  --sidebar-hover:rgba(255,255,255,0.06);
+  --sidebar-border:rgba(255,255,255,0.07);
+  --sidebar-hover:rgba(255,255,255,0.07);
   --sidebar-active:rgba(30,95,168,0.28);
-  --border:rgba(30,100,200,0.18);
+  --border:rgba(30,100,200,0.2);
   --shadow:0 2px 10px rgba(0,0,0,0.4);
   --shadow-md:0 6px 24px rgba(0,0,0,0.5);
-  --text-primary:#e8f4ff;
-  --text-secondary:#7bafd4;
-  --text-muted:#3d6a9a;
-  --text-sidebar:#b8cfe8;
-  --text-sidebar-dim:rgba(184,207,232,0.4);
-  --accent-blue:#2878d4;
-  --accent-gold:#e8a020;
-  --accent-red:#ff3d6a;
-  --accent-orange:#ff8c42;
-  --accent-yellow:#ffd166;
-  --accent-green:#06d6a0;
-  --chart-grid:rgba(32,120,220,0.1);
-  --chart-tick:#3d6a9a;
-  --chart-legend:#7bafd4;
+  --text-primary:#f0f8ff;
+  --text-secondary:#c8e0f4;
+  --text-muted:#8ab8d8;
+  --text-sidebar:#d0e8f8;
+  --text-sidebar-dim:#8ab8d8;
+  --accent-blue:#4899f0;
+  --accent-gold:#f0b030;
+  --accent-red:#ff5580;
+  --accent-orange:#ff9955;
+  --accent-yellow:#ffd966;
+  --accent-green:#10e8a8;
+  --chart-grid:rgba(32,120,220,0.15);
+  --chart-tick:#a8cce8;
+  --chart-legend:#c8e0f4;
   --tt-bg:#0a1d38;
-  --tt-title:#e8f4ff;
-  --tt-body:#7bafd4;
-  --tt-border:rgba(32,120,220,0.3);
+  --tt-title:#f0f8ff;
+  --tt-body:#c8e0f4;
+  --tt-border:rgba(32,120,220,0.35);
   --toggle-bg:#1a3a6a;
-  --toggle-dot:#e8a020;
+  --toggle-dot:#f0b030;
 }
 
 /* ===== RESET ===== */
@@ -109,12 +109,16 @@ html, body {
 }
 .brand {
   padding:12px 16px; border-bottom:1px solid var(--sidebar-border);
-  display:flex; align-items:center; min-height:68px;
-  background:rgba(0,0,0,0.04);
+  display:flex; align-items:center; min-height:80px;
+  background:rgba(0,0,0,0.06);
 }
-.brand-logo { width:148px; height:50px; object-fit:contain; mix-blend-mode:normal; filter:brightness(1.2) contrast(1.05); }
+.brand-logo { width:190px; height:64px; object-fit:contain; mix-blend-mode:normal; }
+[data-theme="light"] .brand-logo { filter:brightness(0.85) contrast(1.2); }
+[data-theme="dark"]  .brand-logo { filter:brightness(1.6) contrast(1.15) saturate(1.1); }
 .nav-section { padding:10px 10px 2px; }
-.nav-sec-label { font-size:9px; color:var(--text-sidebar-dim); letter-spacing:2.5px; text-transform:uppercase; padding:0 8px 7px; font-weight:700; display:block; }
+.nav-sec-label { font-size:9px; color:var(--text-sidebar-dim); letter-spacing:2.5px; text-transform:uppercase; padding:0 8px 7px; font-weight:800; display:block; }
+[data-theme="light"] .nav-sec-label { color:#4a6278; }
+[data-theme="dark"]  .nav-sec-label { color:#8ab8d8; }
 .nav-item {
   display:flex; align-items:center; gap:10px; padding:9px 11px;
   border-radius:10px; cursor:pointer; transition:all 0.18s;
@@ -152,6 +156,8 @@ html, body {
 }
 .user-name { font-size:12px; font-weight:600; color:var(--text-sidebar); }
 .user-role { font-size:10px; color:var(--text-sidebar-dim); }
+[data-theme="light"] .user-role { color:#4a6278; }
+[data-theme="dark"]  .user-role { color:#8ab8d8; }
 
 /* ===== TOPBAR ===== */
 .topbar {
@@ -224,6 +230,14 @@ html, body {
 .overlay.show { display:block; }
 
 /* ===== MAIN ===== */
+
+.main {
+  margin-left:var(--sw);
+  padding-top:var(--th);
+  min-height:100vh;
+  background:var(--bg-main);
+  transition:margin-left 0.3s, background 0.3s;
+}
 
 .page { display:none; padding:22px; animation:fadeIn 0.25s ease; }
 .page.active { display:block; }
@@ -326,6 +340,10 @@ tr:hover td { background:rgba(30,85,152,0.03); }
 .ring-svg { transform:rotate(-90deg); }
 .ring-val { font-family:"Space Grotesk",sans-serif; font-size:15px; font-weight:700; color:var(--text-primary); text-align:center; }
 .ring-sub { font-size:9px; color:var(--text-muted); text-align:center; line-height:1.4; }
+/* Ring track (background circle) — visible in both themes */
+.ring-track { stroke:var(--border); }
+[data-theme="light"] .ring-track { stroke:rgba(30,80,150,0.15); }
+[data-theme="dark"]  .ring-track { stroke:rgba(255,255,255,0.1); }
 
 /* ===== IOT GRID ===== */
 .iot-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:9px; }
@@ -467,7 +485,6 @@ canvas { width:100% !important; }
   .sidebar { transform:none !important; }
   .hamburger { display:none !important; }
   .topbar { left:var(--sw); }
-  .main { margin-left:var(--sw); }
 }
 
 /* Large laptop */
@@ -496,7 +513,7 @@ canvas { width:100% !important; }
   .sidebar.open { transform:translateX(0); }
   .overlay { position:fixed; z-index:199; }
   .topbar { left:0 !important; }
-  .main { margin-left:0 !important; }
+  .main { margin-left:0 !important; padding-top:var(--th); }
   .hamburger { display:flex !important; }
   .search-bar { display:none; }
   .status-pill { display:none; }
@@ -524,7 +541,7 @@ canvas { width:100% !important; }
 
 <aside class="sidebar" id="sidebar">
   <div class="brand">
-    <img src="Trace Logo W.png" class="brand-logo" alt="Trace AI"/>
+    <img src="CAWIL.ai.png" class="brand-logo" alt="TraceAI"/>
   </div>
   <nav>
     <div class="nav-section">
@@ -691,7 +708,7 @@ canvas { width:100% !important; }
       <div class="card-body">
         <div class="gauge-sec">
           <svg width="160" height="90" viewBox="0 0 160 90">
-            <path d="M 15 80 A 65 65 0 0 1 145 80" fill="none" stroke="rgba(255,255,255,0.06)" stroke-width="12" stroke-linecap="round"/>
+            <path d="M 15 80 A 65 65 0 0 1 145 80" fill="none" class="ring-track" stroke-width="12" stroke-linecap="round"/>
             <path d="M 15 80 A 65 65 0 0 1 145 80" fill="none" stroke="url(#rg)" stroke-width="12" stroke-linecap="round" stroke-dasharray="204" stroke-dashoffset="61"/>
             <defs><linearGradient id="rg" x1="0%" y1="0%" x2="100%" y2="0%"><stop offset="0%" stop-color="#06d6a0"/><stop offset="50%" stop-color="#ffd166"/><stop offset="100%" stop-color="#ff3d6a"/></linearGradient></defs>
           </svg>
@@ -774,10 +791,10 @@ canvas { width:100% !important; }
       <div class="card-head"><div class="card-title"><svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>Compliance Overview</div><button class="card-action">Full Report</button></div>
       <div class="card-body">
         <div class="rings-row">
-          <div class="ring-wrap"><svg class="ring-svg" width="72" height="72"><circle cx="36" cy="36" r="30" fill="none" stroke="rgba(255,255,255,0.06)" stroke-width="7"/><circle cx="36" cy="36" r="30" fill="none" stroke="#06d6a0" stroke-width="7" stroke-linecap="round" stroke-dasharray="188" stroke-dashoffset="19"/></svg><div class="ring-val">90%</div><div class="ring-sub">Infection<br>Control</div></div>
-          <div class="ring-wrap"><svg class="ring-svg" width="72" height="72"><circle cx="36" cy="36" r="30" fill="none" stroke="rgba(255,255,255,0.06)" stroke-width="7"/><circle cx="36" cy="36" r="30" fill="none" stroke="#1e5fa8" stroke-width="7" stroke-linecap="round" stroke-dasharray="188" stroke-dashoffset="11"/></svg><div class="ring-val">94%</div><div class="ring-sub">Medication<br>Safety</div></div>
-          <div class="ring-wrap"><svg class="ring-svg" width="72" height="72"><circle cx="36" cy="36" r="30" fill="none" stroke="rgba(255,255,255,0.06)" stroke-width="7"/><circle cx="36" cy="36" r="30" fill="none" stroke="#ffd166" stroke-width="7" stroke-linecap="round" stroke-dasharray="188" stroke-dashoffset="49"/></svg><div class="ring-val">74%</div><div class="ring-sub">Fire<br>Safety</div></div>
-          <div class="ring-wrap"><svg class="ring-svg" width="72" height="72"><circle cx="36" cy="36" r="30" fill="none" stroke="rgba(255,255,255,0.06)" stroke-width="7"/><circle cx="36" cy="36" r="30" fill="none" stroke="#00e5c0" stroke-width="7" stroke-linecap="round" stroke-dasharray="188" stroke-dashoffset="6"/></svg><div class="ring-val">97%</div><div class="ring-sub">Staff<br>Protocol</div></div>
+          <div class="ring-wrap"><svg class="ring-svg" width="72" height="72"><circle cx="36" cy="36" r="30" fill="none" class="ring-track" stroke-width="7"/><circle cx="36" cy="36" r="30" fill="none" stroke="#06d6a0" stroke-width="7" stroke-linecap="round" stroke-dasharray="188" stroke-dashoffset="19"/></svg><div class="ring-val">90%</div><div class="ring-sub">Infection<br>Control</div></div>
+          <div class="ring-wrap"><svg class="ring-svg" width="72" height="72"><circle cx="36" cy="36" r="30" fill="none" class="ring-track" stroke-width="7"/><circle cx="36" cy="36" r="30" fill="none" stroke="#1e5fa8" stroke-width="7" stroke-linecap="round" stroke-dasharray="188" stroke-dashoffset="11"/></svg><div class="ring-val">94%</div><div class="ring-sub">Medication<br>Safety</div></div>
+          <div class="ring-wrap"><svg class="ring-svg" width="72" height="72"><circle cx="36" cy="36" r="30" fill="none" class="ring-track" stroke-width="7"/><circle cx="36" cy="36" r="30" fill="none" stroke="#ffd166" stroke-width="7" stroke-linecap="round" stroke-dasharray="188" stroke-dashoffset="49"/></svg><div class="ring-val">74%</div><div class="ring-sub">Fire<br>Safety</div></div>
+          <div class="ring-wrap"><svg class="ring-svg" width="72" height="72"><circle cx="36" cy="36" r="30" fill="none" class="ring-track" stroke-width="7"/><circle cx="36" cy="36" r="30" fill="none" stroke="#00e5c0" stroke-width="7" stroke-linecap="round" stroke-dasharray="188" stroke-dashoffset="6"/></svg><div class="ring-val">97%</div><div class="ring-sub">Staff<br>Protocol</div></div>
         </div>
         <div style="margin-top:14px">
           <div class="comp-item"><div class="comp-head"><span class="comp-name">Hand Hygiene Compliance</span><span class="comp-pct">90%</span></div><div class="comp-track"><div class="comp-bar" style="width:90%;background:var(--accent-green)"></div></div></div>
@@ -1488,13 +1505,13 @@ var chartInst = {};
 function getColors() {
   var dark = document.documentElement.getAttribute('data-theme') === 'dark';
   return {
-    grid: dark ? 'rgba(32,120,220,0.1)' : 'rgba(30,80,150,0.12)',
-    tick: dark ? '#7bafd4' : '#1e3a5a',
-    leg:  dark ? '#7bafd4' : '#1e3a5a',
+    grid: dark ? 'rgba(32,120,220,0.15)' : 'rgba(30,80,150,0.12)',
+    tick: dark ? '#a8cce8' : '#1e3a5a',
+    leg:  dark ? '#c8e0f4' : '#1e3a5a',
     ttBg: dark ? '#0a1d38' : '#f8fafd',
-    ttTitle: dark ? '#e8f4ff' : '#0d1c32',
-    ttBody:  dark ? '#7bafd4' : '#1e3a5a',
-    ttBorder: dark ? 'rgba(32,120,220,0.3)' : 'rgba(30,80,150,0.25)'
+    ttTitle: dark ? '#f0f8ff' : '#0d1c32',
+    ttBody:  dark ? '#c8e0f4' : '#1e3a5a',
+    ttBorder: dark ? 'rgba(32,120,220,0.35)' : 'rgba(30,80,150,0.25)'
   };
 }
 
