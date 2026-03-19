@@ -1,0 +1,2056 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Trace AI — Healthcare Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+<style>
+/* ===== LIGHT THEME ===== */
+[data-theme="light"] {
+  --bg-body:#8a939e;
+  --bg-main:rgba(185,193,202,0.88);
+  --bg-card:#f0f3f8;
+  --bg-card2:#e8edf5;
+  --bg-topbar:rgba(235,240,248,0.97);
+  --sidebar-bg:#d6dce4;
+  --sidebar-border:rgba(0,0,0,0.08);
+  --sidebar-hover:rgba(0,0,0,0.08);
+  --sidebar-active:rgba(26,85,152,0.15);
+  --border:rgba(30,80,150,0.14);
+  --shadow:0 2px 10px rgba(20,60,120,0.08);
+  --shadow-md:0 6px 24px rgba(20,60,120,0.13);
+  --text-primary:#0a0f1a;
+  --text-secondary:#2a3d52;
+  --text-muted:#4a607a;
+  --text-sidebar:#3a4d62;
+  --text-sidebar-dim:rgba(58,77,98,0.4);
+  --accent-blue:#1a5598;
+  --accent-gold:#b87c08;
+  --accent-red:#c83558;
+  --accent-orange:#c8601e;
+  --accent-yellow:#a07e0a;
+  --accent-green:#087a52;
+  --chart-grid:rgba(30,80,150,0.12);
+  --chart-tick:#1e3a5a;
+  --chart-legend:#1e3a5a;
+  --tt-bg:#f8fafd;
+  --tt-title:#0d1c32;
+  --tt-body:#1e3a5a;
+  --tt-border:rgba(30,80,150,0.25);
+  --toggle-bg:#b0c0d4;
+  --toggle-dot:#ffffff;
+}
+/* ===== DARK THEME ===== */
+[data-theme="dark"] {
+  --bg-body:#4a5260;
+  --bg-main:rgba(5,15,32,0.90);
+  --bg-card:#0a1d38;
+  --bg-card2:#0d2244;
+  --bg-topbar:rgba(4,13,26,0.95);
+  --sidebar-bg:#040d1a;
+  --sidebar-border:rgba(255,255,255,0.05);
+  --sidebar-hover:rgba(255,255,255,0.06);
+  --sidebar-active:rgba(30,95,168,0.28);
+  --border:rgba(30,100,200,0.18);
+  --shadow:0 2px 10px rgba(0,0,0,0.4);
+  --shadow-md:0 6px 24px rgba(0,0,0,0.5);
+  --text-primary:#e8f4ff;
+  --text-secondary:#7bafd4;
+  --text-muted:#3d6a9a;
+  --text-sidebar:#b8cfe8;
+  --text-sidebar-dim:rgba(184,207,232,0.4);
+  --accent-blue:#2878d4;
+  --accent-gold:#e8a020;
+  --accent-red:#ff3d6a;
+  --accent-orange:#ff8c42;
+  --accent-yellow:#ffd166;
+  --accent-green:#06d6a0;
+  --chart-grid:rgba(32,120,220,0.1);
+  --chart-tick:#3d6a9a;
+  --chart-legend:#7bafd4;
+  --tt-bg:#0a1d38;
+  --tt-title:#e8f4ff;
+  --tt-body:#7bafd4;
+  --tt-border:rgba(32,120,220,0.3);
+  --toggle-bg:#1a3a6a;
+  --toggle-dot:#e8a020;
+}
+
+/* ===== RESET ===== */
+*,*::before,*::after { box-sizing:border-box; margin:0; padding:0; }
+html, body {
+  font-family:"DM Sans",sans-serif;
+  background:var(--bg-body);
+  color:var(--text-primary);
+  min-height:100vh;
+  overflow-x:hidden;
+  -webkit-font-smoothing:antialiased;
+  transition:background 0.3s, color 0.3s;
+}
+:root {
+  --sw:248px;
+  --th:62px;
+  --r:14px;
+  --rs:9px;
+}
+
+/* ===== SIDEBAR ===== */
+.sidebar {
+  position:fixed; left:0; top:0; bottom:0; width:var(--sw);
+  background:var(--sidebar-bg);
+  border-right:1px solid var(--sidebar-border);
+  z-index:200; display:flex; flex-direction:column; overflow:hidden;
+  transition:transform 0.3s ease, background 0.3s;
+  box-shadow:3px 0 20px rgba(0,0,0,0.15);
+}
+.brand {
+  padding:12px 16px; border-bottom:1px solid var(--sidebar-border);
+  display:flex; align-items:center; min-height:68px;
+  background:rgba(0,0,0,0.04);
+}
+.brand-logo { width:148px; height:50px; object-fit:contain; mix-blend-mode:normal; filter:brightness(1.2) contrast(1.05); }
+.nav-section { padding:10px 10px 2px; }
+.nav-sec-label { font-size:9px; color:var(--text-sidebar-dim); letter-spacing:2.5px; text-transform:uppercase; padding:0 8px 7px; font-weight:700; display:block; }
+.nav-item {
+  display:flex; align-items:center; gap:10px; padding:9px 11px;
+  border-radius:10px; cursor:pointer; transition:all 0.18s;
+  color:var(--text-sidebar); font-size:13px; font-weight:500;
+  margin-bottom:2px; position:relative; border:none; background:none;
+  width:100%; text-align:left; font-family:"DM Sans",sans-serif;
+  text-decoration:none;
+}
+.nav-item:hover { background:var(--sidebar-hover); color:var(--accent-blue); }
+.nav-item.active { background:var(--sidebar-active); color:var(--accent-blue); }
+.nav-item.active::before {
+  content:""; position:absolute; left:0; top:50%; transform:translateY(-50%);
+  width:3px; height:20px; background:var(--accent-gold); border-radius:0 3px 3px 0;
+}
+.nav-icon { width:17px; height:17px; flex-shrink:0; stroke:currentColor; fill:none; stroke-width:1.8; }
+.nav-item span:nth-child(2) { flex:1; }
+.nbadge {
+  margin-left:auto; font-size:9px; font-weight:800;
+  padding:2px 6px; border-radius:20px; min-width:18px; text-align:center; color:#fff;
+}
+.nbadge.red { background:var(--accent-red); }
+.nbadge.yellow { background:var(--accent-yellow); color:#000; }
+.nbadge.green { background:var(--accent-green); color:#000; }
+.sidebar-footer { margin-top:auto; padding:14px; border-top:1px solid var(--sidebar-border); }
+.user-card {
+  display:flex; align-items:center; gap:10px; padding:10px;
+  border-radius:10px; background:rgba(0,0,0,0.04); cursor:pointer; transition:background 0.2s;
+}
+.user-card:hover { background:rgba(0,0,0,0.07); }
+.user-avatar {
+  width:32px; height:32px; border-radius:50%;
+  background:linear-gradient(135deg,#1e5fa8,#c8890a);
+  display:flex; align-items:center; justify-content:center;
+  font-size:11px; font-weight:700; color:#fff; flex-shrink:0;
+}
+.user-name { font-size:12px; font-weight:600; color:var(--text-sidebar); }
+.user-role { font-size:10px; color:var(--text-sidebar-dim); }
+
+/* ===== TOPBAR ===== */
+.topbar {
+  position:fixed; top:0; left:var(--sw); right:0; height:var(--th);
+  background:var(--bg-topbar); backdrop-filter:blur(16px);
+  border-bottom:1px solid var(--border); z-index:150;
+  display:flex; align-items:center; padding:0 22px; gap:10px;
+  transition:left 0.3s, background 0.3s;
+  box-shadow:0 1px 12px rgba(0,0,0,0.06);
+}
+.topbar-title { font-family:"Space Grotesk",sans-serif; font-size:15px; font-weight:700; color:var(--text-primary); flex:1; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.topbar-title span { color:var(--text-muted); font-weight:400; font-size:12px; margin-left:5px; }
+.search-bar {
+  display:flex; align-items:center; gap:8px;
+  background:var(--bg-card); border:1.5px solid var(--border);
+  border-radius:30px; padding:7px 14px; width:220px; transition:border-color 0.2s;
+}
+.search-bar:focus-within { border-color:var(--accent-blue); }
+.search-bar input { background:none; border:none; outline:none; color:var(--text-primary); font-size:12.5px; width:100%; font-family:"DM Sans",sans-serif; }
+.search-bar input::placeholder { color:var(--text-muted); }
+.search-icon { width:14px; height:14px; stroke:var(--text-muted); fill:none; stroke-width:2; flex-shrink:0; }
+.topbar-actions { display:flex; align-items:center; gap:8px; flex-shrink:0; }
+.icon-btn {
+  width:36px; height:36px; border:1.5px solid var(--border);
+  border-radius:10px; background:var(--bg-card); cursor:pointer;
+  display:flex; align-items:center; justify-content:center;
+  position:relative; transition:all 0.2s; flex-shrink:0;
+}
+.icon-btn:hover { border-color:var(--accent-blue); background:var(--bg-card2); }
+.icon-btn svg { width:15px; height:15px; stroke:var(--text-secondary); fill:none; stroke-width:1.8; }
+.notif-dot { position:absolute; top:6px; right:6px; width:6px; height:6px; background:var(--accent-red); border-radius:50%; border:1.5px solid var(--bg-card); animation:blink 2s infinite; }
+
+/* ===== DARK MODE TOGGLE ===== */
+.dm-toggle {
+  width:46px; height:26px; border-radius:30px;
+  border:1.5px solid var(--border);
+  background:var(--toggle-bg); cursor:pointer; position:relative;
+  flex-shrink:0; transition:background 0.3s, border-color 0.3s;
+  display:flex; align-items:center; padding:0 4px; gap:0;
+}
+.dm-toggle-dot {
+  width:18px; height:18px; border-radius:50%;
+  background:var(--toggle-dot);
+  box-shadow:0 1px 4px rgba(0,0,0,0.25);
+  transition:transform 0.3s, background 0.3s;
+  display:flex; align-items:center; justify-content:center;
+  font-size:10px; line-height:1; flex-shrink:0; pointer-events:none;
+}
+[data-theme="dark"] .dm-toggle-dot { transform:translateX(20px); }
+[data-theme="light"] .dm-toggle-dot::before { content:"☀️"; }
+[data-theme="dark"]  .dm-toggle-dot::before { content:"🌙"; }
+
+.status-pill {
+  display:flex; align-items:center; gap:5px; padding:6px 11px;
+  border-radius:20px; background:rgba(8,122,82,0.1);
+  border:1.5px solid rgba(8,122,82,0.25);
+  font-size:10px; font-weight:600; color:var(--accent-green); white-space:nowrap;
+}
+.status-dot { width:5px; height:5px; border-radius:50%; background:var(--accent-green); animation:blink 2s infinite; }
+
+@keyframes blink { 0%,100% { opacity:1; } 50% { opacity:0.4; } }
+
+.hamburger {
+  display:none; width:36px; height:36px; border:1.5px solid var(--border);
+  border-radius:10px; background:var(--bg-card); cursor:pointer;
+  align-items:center; justify-content:center; flex-shrink:0;
+}
+.hamburger svg { width:16px; height:16px; stroke:var(--text-secondary); fill:none; stroke-width:2; }
+.overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.45); z-index:199; backdrop-filter:blur(3px); }
+.overlay.show { display:block; }
+
+/* ===== MAIN ===== */
+
+.page { display:none; padding:22px; animation:fadeIn 0.25s ease; }
+.page.active { display:block; }
+@keyframes fadeIn { from { opacity:0; transform:translateY(6px); } to { opacity:1; transform:translateY(0); } }
+.page-header { margin-bottom:18px; }
+.page-header h1 { font-family:"Space Grotesk",sans-serif; font-size:21px; font-weight:700; color:var(--text-primary); }
+.page-header p { font-size:12.5px; color:var(--text-muted); margin-top:4px; }
+
+/* ===== KPI GRID ===== */
+.kpi-grid { display:grid; grid-template-columns:repeat(5,1fr); gap:13px; margin-bottom:18px; }
+.kpi-card {
+  background:var(--bg-card); border:1.5px solid var(--border); border-radius:var(--r);
+  padding:15px; position:relative; overflow:hidden;
+  transition:transform 0.2s, box-shadow 0.2s, background 0.3s;
+  cursor:default; box-shadow:var(--shadow);
+}
+.kpi-card:hover { transform:translateY(-3px); box-shadow:var(--shadow-md); }
+.kpi-card::after { content:""; position:absolute; top:0; left:0; right:0; height:3px; background:var(--kc,var(--accent-blue)); border-radius:var(--r) var(--r) 0 0; }
+.kpi-icon { width:34px; height:34px; border-radius:9px; background:var(--kb,rgba(30,85,152,0.1)); display:flex; align-items:center; justify-content:center; margin-bottom:11px; }
+.kpi-icon svg { width:16px; height:16px; stroke:var(--kc,var(--accent-blue)); fill:none; stroke-width:1.8; }
+.kpi-val { font-family:"Space Grotesk",sans-serif; font-size:23px; font-weight:700; color:var(--text-primary); line-height:1; margin-bottom:3px; }
+.kpi-lbl { font-size:11px; color:var(--text-muted); font-weight:500; }
+.kpi-delta { margin-top:7px; font-size:10.5px; font-weight:600; display:flex; align-items:center; gap:3px; color:var(--text-secondary); }
+
+/* ===== SECTION LABEL ===== */
+.sec-label { font-size:10px; font-weight:700; letter-spacing:2px; text-transform:uppercase; color:var(--text-muted); margin:18px 0 12px; display:flex; align-items:center; gap:10px; }
+.sec-label::after { content:""; flex:1; height:1px; background:var(--border); }
+
+/* ===== CARDS ===== */
+.card { background:var(--bg-card); border:1.5px solid var(--border); border-radius:var(--r); overflow:hidden; margin-bottom:14px; box-shadow:var(--shadow); transition:background 0.3s; }
+.card-head { padding:13px 17px 11px; display:flex; align-items:center; justify-content:space-between; border-bottom:1.5px solid var(--border); background:var(--bg-card2); transition:background 0.3s; }
+.card-title { font-family:"Space Grotesk",sans-serif; font-size:12.5px; font-weight:600; color:var(--text-primary); display:flex; align-items:center; gap:8px; }
+.card-title svg { width:13px; height:13px; stroke:var(--accent-blue); fill:none; stroke-width:2; flex-shrink:0; }
+.card-body { padding:15px 17px; }
+.card-action { font-size:11.5px; font-weight:600; color:var(--accent-blue); background:none; border:none; cursor:pointer; font-family:"DM Sans",sans-serif; padding:3px 0; }
+
+/* ===== CHART GRIDS ===== */
+.chart-2col { display:grid; grid-template-columns:2fr 1fr; gap:14px; }
+.chart-eq   { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+.chart-3col { display:grid; grid-template-columns:1fr 1fr 1fr; gap:14px; }
+
+/* ===== BADGES ===== */
+.badge { display:inline-flex; align-items:center; gap:4px; padding:3px 9px; border-radius:20px; font-size:10px; font-weight:700; white-space:nowrap; }
+.badge::before { content:""; width:4px; height:4px; border-radius:50%; background:currentColor; opacity:0.8; flex-shrink:0; }
+.badge-normal { background:rgba(8,122,82,0.1);  color:var(--accent-green);  border:1px solid rgba(8,122,82,0.25); }
+.badge-sus    { background:rgba(160,126,10,0.1); color:var(--accent-yellow); border:1px solid rgba(160,126,10,0.3); }
+.badge-high   { background:rgba(200,53,88,0.1);  color:var(--accent-red);    border:1px solid rgba(200,53,88,0.25); }
+.badge-med    { background:rgba(200,96,30,0.1);  color:var(--accent-orange); border:1px solid rgba(200,96,30,0.25); }
+.badge-info   { background:rgba(184,124,8,0.1);  color:var(--accent-gold);   border:1px solid rgba(184,124,8,0.25); }
+.badge-done   { background:rgba(26,85,152,0.08); color:var(--accent-blue);   border:1px solid rgba(26,85,152,0.2); }
+
+/* ===== RISK BAR ===== */
+.risk-row { display:flex; align-items:center; gap:8px; }
+.risk-track { flex:1; height:5px; background:var(--bg-card2); border-radius:3px; overflow:hidden; border:1px solid var(--border); }
+.risk-fill { height:100%; border-radius:3px; }
+.risk-num { font-family:"JetBrains Mono",monospace; font-size:10px; width:26px; text-align:right; font-weight:600; }
+
+/* ===== TABLE ROWS ===== */
+.tbl-row { display:flex; align-items:flex-start; padding:10px 0; border-bottom:1px solid var(--border); gap:10px; }
+.tbl-row:last-child { border-bottom:none; }
+.tbl-id { font-family:"JetBrains Mono",monospace; font-size:10px; color:var(--accent-blue); font-weight:600; }
+.tbl-main { flex:1; min-width:0; }
+.tbl-primary { font-size:12.5px; font-weight:500; color:var(--text-primary); }
+.tbl-secondary { font-size:10.5px; color:var(--text-muted); margin-top:2px; }
+.tbl-right { display:flex; flex-direction:column; align-items:flex-end; gap:5px; flex-shrink:0; }
+
+/* ===== FULL TABLE ===== */
+.table-wrap { overflow-x:auto; }
+table { width:100%; border-collapse:collapse; font-size:12.5px; }
+th { text-align:left; padding:10px 12px; font-size:9.5px; letter-spacing:0.8px; text-transform:uppercase; color:var(--text-muted); font-weight:700; border-bottom:1.5px solid var(--border); white-space:nowrap; background:var(--bg-card2); }
+td { padding:10px 12px; border-bottom:1px solid var(--border); color:var(--text-secondary); vertical-align:middle; }
+tr:last-child td { border-bottom:none; }
+tr:hover td { background:rgba(30,85,152,0.03); }
+.mono { font-family:"JetBrains Mono",monospace; font-size:10.5px; color:var(--accent-blue); }
+
+/* ===== BUTTONS ===== */
+.btn { padding:7px 13px; border-radius:8px; font-size:11.5px; font-weight:600; cursor:pointer; border:none; font-family:"DM Sans",sans-serif; transition:all 0.15s; display:inline-flex; align-items:center; gap:5px; }
+.btn-primary { background:var(--accent-blue); color:#fff; }
+.btn-ghost   { background:none; border:1.5px solid var(--border); color:var(--text-secondary); }
+.btn-ghost:hover { border-color:var(--accent-blue); color:var(--accent-blue); }
+.btn-danger  { background:rgba(200,53,88,0.08); border:1.5px solid rgba(200,53,88,0.25); color:var(--accent-red); }
+.btn-sm { padding:4px 10px; font-size:10.5px; border-radius:6px; }
+
+/* ===== CHIPS ===== */
+.chips { display:flex; gap:6px; flex-wrap:wrap; margin-bottom:13px; }
+.chip { padding:5px 13px; border-radius:20px; border:1.5px solid var(--border); font-size:11px; font-weight:600; color:var(--text-muted); background:none; cursor:pointer; white-space:nowrap; font-family:"DM Sans",sans-serif; transition:all 0.15s; }
+.chip.active, .chip:hover { background:rgba(26,85,152,0.07); border-color:var(--accent-blue); color:var(--accent-blue); }
+
+/* ===== COMPLIANCE ===== */
+.comp-item { margin-bottom:12px; }
+.comp-head { display:flex; justify-content:space-between; margin-bottom:5px; }
+.comp-name { font-size:12px; color:var(--text-secondary); font-weight:500; }
+.comp-pct { font-family:"JetBrains Mono",monospace; font-size:11px; color:var(--text-primary); font-weight:700; }
+.comp-track { height:7px; background:var(--bg-card2); border-radius:4px; overflow:hidden; border:1px solid var(--border); }
+.comp-bar { height:100%; border-radius:4px; transition:width 1s ease; }
+
+/* ===== RINGS ===== */
+.rings-row { display:flex; justify-content:space-around; padding:8px 0 6px; flex-wrap:wrap; gap:12px; }
+.ring-wrap { display:flex; flex-direction:column; align-items:center; gap:5px; }
+.ring-svg { transform:rotate(-90deg); }
+.ring-val { font-family:"Space Grotesk",sans-serif; font-size:15px; font-weight:700; color:var(--text-primary); text-align:center; }
+.ring-sub { font-size:9px; color:var(--text-muted); text-align:center; line-height:1.4; }
+
+/* ===== IOT GRID ===== */
+.iot-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:9px; }
+.iot-card { background:var(--bg-card2); border:1.5px solid var(--border); border-radius:var(--rs); padding:11px; transition:box-shadow 0.2s; }
+.iot-card:hover { box-shadow:var(--shadow); }
+.iot-lbl { font-size:9px; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.8px; margin-bottom:4px; font-weight:600; }
+.iot-val { font-family:"Space Grotesk",sans-serif; font-size:17px; font-weight:700; color:var(--text-primary); }
+.iot-st { font-size:9.5px; margin-top:3px; font-weight:600; }
+
+/* ===== ALERTS ===== */
+.alert-item { display:flex; gap:11px; padding:11px 0; border-bottom:1px solid var(--border); align-items:flex-start; }
+.alert-item:last-child { border-bottom:none; }
+.alert-icon { width:35px; height:35px; border-radius:10px; flex-shrink:0; display:flex; align-items:center; justify-content:center; }
+.alert-icon svg { width:16px; height:16px; stroke:currentColor; fill:none; stroke-width:1.8; }
+.alert-body { flex:1; min-width:0; }
+.alert-title { font-size:13px; font-weight:600; color:var(--text-primary); line-height:1.3; }
+.alert-desc { font-size:11.5px; color:var(--text-secondary); margin-top:3px; line-height:1.5; }
+.alert-foot { display:flex; align-items:center; gap:7px; margin-top:5px; flex-wrap:wrap; }
+.alert-time { font-family:"JetBrains Mono",monospace; font-size:10px; color:var(--text-muted); }
+.alert-right { display:flex; flex-direction:column; align-items:flex-end; gap:5px; flex-shrink:0; }
+
+/* ===== GAUGE ===== */
+.gauge-sec { display:flex; flex-direction:column; align-items:center; padding:8px 0 4px; }
+.gauge-val { font-family:"Space Grotesk",sans-serif; font-size:46px; font-weight:800; line-height:1; margin:6px 0 3px; }
+.gauge-lbl { font-size:11px; color:var(--text-muted); }
+.gauge-level { font-size:11px; font-weight:700; padding:4px 14px; border-radius:20px; margin-top:8px; }
+.gauge-stats { display:flex; justify-content:space-around; width:100%; margin-top:13px; padding-top:11px; border-top:1.5px solid var(--border); }
+.gs-val { font-family:"Space Grotesk",sans-serif; font-size:19px; font-weight:700; text-align:center; }
+.gs-lbl { font-size:9px; color:var(--text-muted); margin-top:2px; text-align:center; }
+
+/* ===== INCIDENTS ===== */
+.inc-item { display:flex; gap:10px; padding:9px 0; border-bottom:1px solid var(--border); }
+.inc-item:last-child { border-bottom:none; }
+.inc-dot { width:8px; height:8px; border-radius:50%; flex-shrink:0; margin-top:4px; }
+.inc-title { font-size:12.5px; font-weight:500; color:var(--text-primary); }
+.inc-meta { font-size:10.5px; color:var(--text-muted); margin-top:2px; font-family:"JetBrains Mono",monospace; }
+.live { display:inline-block; width:6px; height:6px; border-radius:50%; background:var(--accent-red); animation:blink 1.5s infinite; margin-right:4px; }
+
+
+/* ===== MODAL SYSTEM ===== */
+.modal-backdrop {
+  display:none; position:fixed; inset:0; background:rgba(0,0,0,0.55);
+  z-index:900; backdrop-filter:blur(4px);
+  align-items:center; justify-content:center;
+}
+.modal-backdrop.open { display:flex; }
+.modal {
+  background:var(--bg-card); border:1.5px solid var(--border);
+  border-radius:18px; box-shadow:0 24px 64px rgba(0,0,0,0.35);
+  width:90%; max-width:460px; max-height:82vh;
+  overflow-y:auto; animation:modalIn 0.22s ease;
+}
+@keyframes modalIn { from{opacity:0;transform:scale(0.93) translateY(12px)} to{opacity:1;transform:scale(1) translateY(0)} }
+.modal-head {
+  padding:18px 20px 14px; border-bottom:1.5px solid var(--border);
+  display:flex; align-items:center; justify-content:space-between;
+  background:var(--bg-card2); border-radius:18px 18px 0 0;
+  position:sticky; top:0; z-index:1;
+}
+.modal-head-left { display:flex; align-items:center; gap:10px; }
+.modal-icon { width:36px; height:36px; border-radius:10px; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+.modal-icon svg { width:17px; height:17px; stroke:currentColor; fill:none; stroke-width:1.8; }
+.modal-title { font-family:"Space Grotesk",sans-serif; font-size:14px; font-weight:700; color:var(--text-primary); }
+.modal-subtitle { font-size:10.5px; color:var(--text-muted); margin-top:2px; }
+.modal-close { width:28px; height:28px; border-radius:8px; border:1.5px solid var(--border); background:none; cursor:pointer; color:var(--text-muted); display:flex; align-items:center; justify-content:center; font-size:15px; transition:all 0.15s; font-family:"DM Sans",sans-serif; line-height:1; }
+.modal-close:hover { background:rgba(200,53,88,0.08); color:var(--accent-red); border-color:var(--accent-red); }
+.modal-body { padding:16px 20px; }
+.modal-row { display:flex; align-items:center; justify-content:space-between; padding:9px 0; border-bottom:1px solid var(--border); gap:12px; }
+.modal-row:last-child { border-bottom:none; }
+.modal-row-label { font-size:10px; color:var(--text-muted); font-weight:700; text-transform:uppercase; letter-spacing:0.6px; margin-bottom:2px; }
+.modal-row-value { font-size:13px; color:var(--text-primary); font-weight:500; }
+.modal-row-mono { font-family:"JetBrains Mono",monospace; font-size:11.5px; color:var(--accent-blue); }
+.modal-status-bar { display:flex; align-items:center; gap:8px; padding:9px 13px; border-radius:9px; margin-bottom:12px; }
+.modal-section-title { font-size:9.5px; font-weight:700; letter-spacing:2px; text-transform:uppercase; color:var(--text-muted); margin:14px 0 6px; }
+.modal-footer { padding:12px 20px; border-top:1.5px solid var(--border); display:flex; gap:8px; justify-content:flex-end; background:var(--bg-card2); border-radius:0 0 18px 18px; }
+
+/* ===== NOTIFICATION PANEL ===== */
+.notif-panel { display:none; position:fixed; top:calc(var(--th) + 8px); right:16px; width:350px; background:var(--bg-card); border:1.5px solid var(--border); border-radius:16px; box-shadow:var(--shadow-md); z-index:500; animation:dropDown 0.18s ease; }
+.notif-panel.open { display:block; }
+@keyframes dropDown { from{opacity:0;transform:translateY(-8px)} to{opacity:1;transform:translateY(0)} }
+.notif-panel-head { padding:13px 16px 10px; border-bottom:1.5px solid var(--border); display:flex; align-items:center; justify-content:space-between; background:var(--bg-card2); border-radius:16px 16px 0 0; }
+.notif-panel-title { font-family:"Space Grotesk",sans-serif; font-size:13px; font-weight:700; color:var(--text-primary); display:flex; align-items:center; gap:7px; }
+.notif-count-badge { font-size:9px; font-weight:800; padding:2px 7px; border-radius:20px; background:var(--accent-red); color:#fff; }
+.notif-mark-btn { font-size:11px; font-weight:600; color:var(--accent-blue); background:none; border:none; cursor:pointer; font-family:"DM Sans",sans-serif; }
+.notif-item { display:flex; gap:10px; padding:10px 16px; border-bottom:1px solid var(--border); cursor:pointer; transition:background 0.15s; }
+.notif-item:last-child { border-bottom:none; }
+.notif-item:hover { background:var(--bg-card2); }
+.notif-item.unread { background:rgba(26,85,152,0.03); }
+.notif-unread-dot { width:6px; height:6px; border-radius:50%; background:var(--accent-blue); flex-shrink:0; margin-top:6px; }
+.notif-read-dot { width:6px; height:6px; flex-shrink:0; }
+.notif-icon-wrap { width:30px; height:30px; border-radius:8px; flex-shrink:0; display:flex; align-items:center; justify-content:center; }
+.notif-icon-wrap svg { width:13px; height:13px; stroke:currentColor; fill:none; stroke-width:1.8; }
+.notif-content { flex:1; min-width:0; }
+.notif-title { font-size:12px; font-weight:600; color:var(--text-primary); line-height:1.3; }
+.notif-desc { font-size:10.5px; color:var(--text-muted); margin-top:2px; line-height:1.4; }
+.notif-time { font-family:"JetBrains Mono",monospace; font-size:9.5px; color:var(--text-muted); margin-top:3px; }
+.notif-panel-foot { padding:9px 16px; text-align:center; border-top:1.5px solid var(--border); background:var(--bg-card2); border-radius:0 0 16px 16px; }
+.notif-panel-foot button { font-size:11.5px; font-weight:600; color:var(--accent-blue); background:none; border:none; cursor:pointer; font-family:"DM Sans",sans-serif; }
+
+/* ===== PROFILE POPUP ===== */
+.profile-popup { display:none; position:fixed; width:272px; background:var(--bg-card); border:1.5px solid var(--border); border-radius:16px; box-shadow:var(--shadow-md); z-index:501; animation:dropDown 0.18s ease; }
+.profile-popup.open { display:block; }
+.profile-popup-head { padding:15px 16px; border-bottom:1.5px solid var(--border); background:var(--bg-card2); border-radius:16px 16px 0 0; display:flex; align-items:center; gap:11px; }
+.profile-avatar-lg { width:44px; height:44px; border-radius:50%; background:linear-gradient(135deg,#1e5fa8,#c8890a); display:flex; align-items:center; justify-content:center; font-size:14px; font-weight:700; color:#fff; flex-shrink:0; }
+.profile-name { font-size:13px; font-weight:700; color:var(--text-primary); }
+.profile-role { font-size:10px; color:var(--text-muted); margin-top:2px; }
+.profile-body { padding:4px 0; }
+.profile-row { display:flex; align-items:center; gap:10px; padding:8px 16px; transition:background 0.15s; cursor:default; }
+.profile-row:hover { background:var(--bg-card2); }
+.profile-row svg { width:13px; height:13px; stroke:var(--text-muted); fill:none; stroke-width:2; flex-shrink:0; }
+.profile-row-text { font-size:11.5px; color:var(--text-secondary); }
+.profile-footer { padding:10px 14px; border-top:1.5px solid var(--border); }
+.profile-logout { width:100%; padding:8px; border-radius:8px; border:1.5px solid rgba(200,53,88,0.25); background:rgba(200,53,88,0.06); color:var(--accent-red); font-size:12px; font-weight:600; cursor:pointer; font-family:"DM Sans",sans-serif; transition:all 0.15s; }
+.profile-logout:hover { background:rgba(200,53,88,0.14); }
+
+/* ===== SEARCH RESULTS ===== */
+.search-results { display:none; position:fixed; background:var(--bg-card); border:1.5px solid var(--border); border-radius:13px; box-shadow:var(--shadow-md); z-index:500; max-height:320px; overflow-y:auto; animation:dropDown 0.15s ease; }
+.search-results.open { display:block; }
+.search-result-item { display:flex; align-items:center; gap:10px; padding:9px 14px; border-bottom:1px solid var(--border); cursor:pointer; transition:background 0.15s; }
+.search-result-item:last-child { border-bottom:none; }
+.search-result-item:hover { background:var(--bg-card2); }
+.search-ri { width:28px; height:28px; border-radius:7px; flex-shrink:0; display:flex; align-items:center; justify-content:center; }
+.search-ri svg { width:12px; height:12px; fill:none; stroke-width:2; }
+.search-rlabel { font-size:9.5px; color:var(--text-muted); font-weight:700; text-transform:uppercase; letter-spacing:0.5px; }
+.search-rtitle { font-size:12.5px; font-weight:500; color:var(--text-primary); }
+.search-rsub { font-size:10px; color:var(--text-muted); margin-top:1px; }
+.search-empty { padding:18px; text-align:center; color:var(--text-muted); font-size:12px; }
+.icon-btn { cursor:pointer; }
+/* ===== SCROLLBAR ===== */
+::-webkit-scrollbar { width:4px; height:4px; }
+::-webkit-scrollbar-thumb { background:var(--border); border-radius:2px; }
+::-webkit-scrollbar-track { background:transparent; }
+canvas { width:100% !important; }
+
+/* ===== RESPONSIVE ===== */
+
+/* Desktop: sidebar always visible */
+@media (min-width: 769px) {
+  .sidebar { transform:none !important; }
+  .hamburger { display:none !important; }
+  .topbar { left:var(--sw); }
+  .main { margin-left:var(--sw); }
+}
+
+/* Large laptop */
+@media (max-width: 1280px) and (min-width: 769px) {
+  .kpi-grid { grid-template-columns:repeat(3, 1fr); }
+  .chart-2col { grid-template-columns:1fr; }
+  .chart-3col { grid-template-columns:1fr 1fr; }
+}
+
+/* Small laptop */
+@media (max-width: 960px) and (min-width: 769px) {
+  :root { --sw:215px; }
+  .kpi-grid { grid-template-columns:repeat(2, 1fr); }
+  .chart-eq { grid-template-columns:1fr; }
+  .search-bar { width:160px; }
+}
+
+/* Mobile */
+@media (max-width: 768px) {
+  :root { --th:56px; --sw:260px; }
+  .sidebar {
+    position:fixed;
+    transform:translateX(-100%);
+    z-index:200;
+  }
+  .sidebar.open { transform:translateX(0); }
+  .overlay { position:fixed; z-index:199; }
+  .topbar { left:0 !important; }
+  .main { margin-left:0 !important; }
+  .hamburger { display:flex !important; }
+  .search-bar { display:none; }
+  .status-pill { display:none; }
+  .topbar-title span { display:none; }
+  .kpi-grid { grid-template-columns:repeat(2, 1fr) !important; gap:10px; }
+  .chart-2col, .chart-eq, .chart-3col { grid-template-columns:1fr !important; }
+  .page { padding:13px; }
+  .iot-grid { grid-template-columns:repeat(2, 1fr); }
+  .card-body { padding:12px 13px; }
+  .card-head { padding:11px 13px 9px; }
+  table { font-size:11.5px; }
+  td, th { padding:8px 9px; }
+  .rings-row { justify-content:center; }
+}
+
+/* Small phone */
+@media (max-width: 420px) {
+  .kpi-grid { grid-template-columns:1fr 1fr; }
+  .iot-grid { grid-template-columns:1fr 1fr; }
+  .page { padding:10px; }
+  .kpi-val { font-size:20px; }
+}
+</style>
+<body>
+
+<aside class="sidebar" id="sidebar">
+  <div class="brand">
+    <img src="Trace Logo W.png" class="brand-logo" alt="Trace AI"/>
+  </div>
+  <nav>
+    <div class="nav-section">
+      <span class="nav-sec-label">Main</span>
+      <button class="nav-item active" onclick="showPage('overview',this)">
+        <svg class="nav-icon" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+        <span>Overview</span>
+      </button>
+      <button class="nav-item" onclick="showPage('fraud',this)">
+        <svg class="nav-icon" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <span>Fraud Detection</span><span class="nbadge red">7</span>
+      </button>
+      <button class="nav-item" onclick="showPage('health',this)">
+        <svg class="nav-icon" viewBox="0 0 24 24"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+        <span>Health Monitoring</span><span class="nbadge yellow">3</span>
+      </button>
+      <button class="nav-item" onclick="showPage('alerts',this)">
+        <svg class="nav-icon" viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+        <span>Alert Center</span><span class="nbadge red">12</span>
+      </button>
+    </div>
+    <div class="nav-section">
+      <span class="nav-sec-label">Analytics</span>
+      <button class="nav-item" onclick="showPage('reports',this)">
+        <svg class="nav-icon" viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+        <span>Reports</span>
+      </button>
+      <button class="nav-item" onclick="showPage('insights',this)">
+        <svg class="nav-icon" viewBox="0 0 24 24"><path d="M12 2a10 10 0 1 0 0 20A10 10 0 0 0 12 2z"/><path d="M12 8v4l3 3"/></svg>
+        <span>AI Insights</span><span class="nbadge green">New</span>
+      </button>
+      <button class="nav-item" onclick="showPage('patients',this)">
+        <svg class="nav-icon" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+        <span>Patient Records</span>
+      </button>
+    </div>
+    <div class="nav-section">
+      <span class="nav-sec-label">System</span>
+      <button class="nav-item" onclick="showPage('settings',this)">
+        <svg class="nav-icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14"/></svg>
+        <span>Settings</span>
+      </button>
+      <button class="nav-item" onclick="showPage('audit',this)">
+        <svg class="nav-icon" viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+        <span>Audit Logs</span>
+      </button>
+    </div>
+  </nav>
+  <div class="sidebar-footer">
+    <div class="user-card" id="userCardBtn" onclick="toggleProfilePopup()">
+      <div class="user-avatar">AD</div>
+      <div><div class="user-name">Admin Director</div><div class="user-role">Super Administrator</div></div>
+    </div>
+  </div>
+</aside>
+
+<div class="overlay" id="overlay" onclick="closeSidebar()"></div>
+
+<header class="topbar">
+  <button class="hamburger" onclick="toggleSidebar()">
+    <svg viewBox="0 0 24 24"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+  </button>
+  <div class="topbar-title" id="page-title">Overview Dashboard <span>/ Main</span></div>
+  <div class="search-bar">
+    <svg class="search-icon" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+    <input type="text" placeholder="Search patients, claims..."/>
+  </div>
+  <div class="topbar-actions">
+    <button class="icon-btn" id="notifBtn" onclick="toggleNotifPanel()" title="Notifications">
+      <svg viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+      <span class="notif-dot" id="notifDot"></span>
+    </button>
+    <button class="dm-toggle" onclick="toggleTheme()" title="Toggle dark mode" aria-label="Toggle dark mode">
+      <div class="dm-toggle-dot"></div>
+    </button>
+    <div class="status-pill"><span class="status-dot"></span>Online</div>
+  </div>
+</header>
+
+<main class="main">
+<section class="page active" id="page-overview">
+<div class="page-header"><h1>Overview Dashboard</h1><p>Real-time healthcare monitoring — Today, March 2026</p></div>
+
+  <div class="kpi-grid">
+    <div class="kpi-card" style="--kc:var(--accent-cyan);--kb:rgba(232,160,32,0.1)">
+      <div class="kpi-icon"><svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></div>
+      <div class="kpi-val">2,847</div><div class="kpi-lbl">Total Patients Today</div>
+      <div class="kpi-delta up"><svg viewBox="0 0 24 24" width="10" height="10" stroke="currentColor" fill="none" stroke-width="3"><polyline points="18 15 12 9 6 15"/></svg>+142 vs yesterday</div>
+    </div>
+    <div class="kpi-card" style="--kc:var(--accent-blue);--kb:rgba(30,95,168,0.1)">
+      <div class="kpi-icon"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/></svg></div>
+      <div class="kpi-val">5,129</div><div class="kpi-lbl">Claims Submitted</div>
+      <div class="kpi-delta up"><svg viewBox="0 0 24 24" width="10" height="10" stroke="currentColor" fill="none" stroke-width="3"><polyline points="18 15 12 9 6 15"/></svg>+8.3% this week</div>
+    </div>
+    <div class="kpi-card" style="--kc:var(--accent-red);--kb:rgba(255,61,106,0.1)">
+      <div class="kpi-icon"><svg viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/></svg></div>
+      <div class="kpi-val">37</div><div class="kpi-lbl">Fraud Alerts Detected</div>
+      <div class="kpi-delta down"><svg viewBox="0 0 24 24" width="10" height="10" stroke="currentColor" fill="none" stroke-width="3"><polyline points="6 9 12 15 18 9"/></svg>+7 critical today</div>
+    </div>
+    <div class="kpi-card" style="--kc:var(--accent-green);--kb:rgba(6,214,160,0.1)">
+      <div class="kpi-icon"><svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></div>
+      <div class="kpi-val">1,204</div><div class="kpi-lbl">Active Safety Checks</div>
+      <div class="kpi-delta up"><svg viewBox="0 0 24 24" width="10" height="10" stroke="currentColor" fill="none" stroke-width="3"><polyline points="18 15 12 9 6 15"/></svg>98.2% compliance</div>
+    </div>
+    <div class="kpi-card" style="--kc:var(--accent-teal);--kb:rgba(0,229,192,0.1)">
+      <div class="kpi-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div>
+      <div class="kpi-val">99.97%</div><div class="kpi-lbl">System Status</div>
+      <div class="kpi-delta up">All systems online</div>
+    </div>
+  </div>
+
+  <div class="chart-2col" style="margin-bottom:14px">
+    <div class="card">
+      <div class="card-head">
+        <div class="card-title"><svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>Fraud Detection Trends — 30 Days</div>
+        <button class="card-action">Export</button>
+      </div>
+      <div class="card-body"><canvas id="fraudTrend" height="200"></canvas></div>
+    </div>
+    <div class="card">
+      <div class="card-head"><div class="card-title"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/></svg>Fraud Categories</div></div>
+      <div class="card-body"><canvas id="fraudPie" height="200"></canvas></div>
+    </div>
+  </div>
+
+  <div class="chart-eq" style="margin-bottom:14px">
+    <div class="card">
+      <div class="card-head"><div class="card-title"><svg viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>Claims per Hospital</div></div>
+      <div class="card-body"><canvas id="claimsBar" height="190"></canvas></div>
+    </div>
+    <div class="card">
+      <div class="card-head"><div class="card-title"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>Daily Safety Checks</div></div>
+      <div class="card-body"><canvas id="safetyLine" height="190"></canvas></div>
+    </div>
+  </div>
+
+  <div class="sec-label"><span class="live"></span>Live Alert Feed</div>
+  <div class="card">
+    <div class="card-head">
+      <div class="card-title"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>Recent Activity</div>
+      <button class="card-action" onclick="showPage('alerts',document.querySelectorAll('.nav-item')[3])">See All</button>
+    </div>
+    <div class="card-body" style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:0">
+      <div class="alert-item" style="padding-right:14px;border-right:1px solid var(--border);border-bottom:none">
+        <div class="alert-icon" style="background:rgba(255,61,106,0.12);color:var(--accent-red)"><svg viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/></svg></div>
+        <div class="alert-body"><div class="alert-title">Duplicate Claim — CLM-88219</div><div class="alert-desc">Metro General Hospital</div><div class="alert-foot"><span class="alert-time">09:42 AM</span><span class="badge badge-high">High Risk</span></div></div>
+      </div>
+      <div class="alert-item" style="padding:11px 14px;border-right:1px solid var(--border);border-bottom:none">
+        <div class="alert-icon" style="background:rgba(255,209,102,0.12);color:var(--accent-yellow)"><svg viewBox="0 0 24 24"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/></svg></div>
+        <div class="alert-body"><div class="alert-title">Abnormal Prescription</div><div class="alert-desc">Dr. Santos — 47 opioid scripts/24h</div><div class="alert-foot"><span class="alert-time">09:31 AM</span><span class="badge badge-sus">Suspicious</span></div></div>
+      </div>
+      <div class="alert-item" style="padding-left:14px;border-bottom:none">
+        <div class="alert-icon" style="background:rgba(255,140,66,0.12);color:var(--accent-orange)"><svg viewBox="0 0 24 24"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg></div>
+        <div class="alert-body"><div class="alert-title">Infection Risk — ICU Ward 3</div><div class="alert-desc">Elevated pathogen levels detected</div><div class="alert-foot"><span class="alert-time">09:18 AM</span><span class="badge badge-med">Warning</span></div></div>
+      </div>
+    </div>
+  </div>
+</section>
+<section class="page" id="page-fraud">
+<div class="page-header"><h1>Fraud Detection Panel</h1><p>AI-powered claim analysis and risk assessment</p></div>
+  <div class="chart-eq" style="margin-bottom:14px">
+    <div class="card">
+      <div class="card-head"><div class="card-title"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg>System Fraud Risk Score</div></div>
+      <div class="card-body">
+        <div class="gauge-sec">
+          <svg width="160" height="90" viewBox="0 0 160 90">
+            <path d="M 15 80 A 65 65 0 0 1 145 80" fill="none" stroke="rgba(255,255,255,0.06)" stroke-width="12" stroke-linecap="round"/>
+            <path d="M 15 80 A 65 65 0 0 1 145 80" fill="none" stroke="url(#rg)" stroke-width="12" stroke-linecap="round" stroke-dasharray="204" stroke-dashoffset="61"/>
+            <defs><linearGradient id="rg" x1="0%" y1="0%" x2="100%" y2="0%"><stop offset="0%" stop-color="#06d6a0"/><stop offset="50%" stop-color="#ffd166"/><stop offset="100%" stop-color="#ff3d6a"/></linearGradient></defs>
+          </svg>
+          <div class="gauge-val" style="color:var(--accent-orange)">68</div>
+          <div class="gauge-lbl">Fraud Risk Index / 100</div>
+          <div class="gauge-level" style="background:rgba(255,140,66,0.12);color:var(--accent-orange);border:1px solid rgba(255,140,66,0.3)">ELEVATED RISK</div>
+          <div class="gauge-stats">
+            <div><div class="gs-val" style="color:var(--accent-red)">7</div><div class="gs-lbl">High Risk</div></div>
+            <div><div class="gs-val" style="color:var(--accent-yellow)">18</div><div class="gs-lbl">Suspicious</div></div>
+            <div><div class="gs-val" style="color:var(--accent-green)">12</div><div class="gs-lbl">Resolved</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-head"><div class="card-title"><svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>AI Detection Activity — 30 Days</div></div>
+      <div class="card-body"><canvas id="fraudArea" height="220"></canvas></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-head">
+      <div class="card-title"><svg viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/></svg>Flagged Claims</div>
+      <div style="display:flex;gap:8px"><button class="btn btn-ghost btn-sm" onclick="exportFraudPDF()"><svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" style="margin-right:3px"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>Export PDF</button><button class="btn btn-danger btn-sm" onclick="openModal('review-all')">Review All</button></div>
+    </div>
+    <div class="card-body">
+      <div class="chips">
+        <button class="chip active">All (37)</button>
+        <button class="chip">High Risk (7)</button>
+        <button class="chip">Suspicious (18)</button>
+        <button class="chip">Normal (12)</button>
+        <button class="chip">Pending Review</button>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Claim ID</th><th>Patient ID</th><th>Hospital</th><th>Amount</th><th>AI Risk Score</th><th>Risk Level</th><th>Status</th><th>Action</th></tr></thead>
+          <tbody>
+            <tr><td class="mono">CLM-88219</td><td class="mono">PT-10042</td><td>Metro General</td><td>2,400</td><td><div class="risk-row"><div class="risk-track"><div class="risk-fill" style="width:91%;background:var(--accent-red)"></div></div><span class="risk-num" style="color:var(--accent-red)">91</span></div></td><td><span class="badge badge-high">High Risk</span></td><td><span class="badge badge-info">Under Review</span></td><td><button class="btn btn-danger btn-sm">Investigate</button></td></tr>
+            <tr><td class="mono">CLM-88105</td><td class="mono">PT-20891</td><td>City Medical</td><td>,750</td><td><div class="risk-row"><div class="risk-track"><div class="risk-fill" style="width:85%;background:var(--accent-red)"></div></div><span class="risk-num" style="color:var(--accent-red)">85</span></div></td><td><span class="badge badge-high">High Risk</span></td><td><span class="badge badge-info">Under Review</span></td><td><button class="btn btn-danger btn-sm">Investigate</button></td></tr>
+            <tr><td class="mono">CLM-87932</td><td class="mono">PT-33810</td><td>St. Luke's</td><td>,200</td><td><div class="risk-row"><div class="risk-track"><div class="risk-fill" style="width:67%;background:var(--accent-yellow)"></div></div><span class="risk-num" style="color:var(--accent-yellow)">67</span></div></td><td><span class="badge badge-sus">Suspicious</span></td><td><span class="badge badge-info">Flagged</span></td><td><button class="btn btn-ghost btn-sm">Review</button></td></tr>
+            <tr><td class="mono">CLM-87811</td><td class="mono">PT-44120</td><td>National Health</td><td>2,100</td><td><div class="risk-row"><div class="risk-track"><div class="risk-fill" style="width:72%;background:var(--accent-yellow)"></div></div><span class="risk-num" style="color:var(--accent-yellow)">72</span></div></td><td><span class="badge badge-sus">Suspicious</span></td><td><span class="badge badge-info">Flagged</span></td><td><button class="btn btn-ghost btn-sm">Review</button></td></tr>
+            <tr><td class="mono">CLM-87780</td><td class="mono">PT-55200</td><td>Riverside Medical</td><td>,900</td><td><div class="risk-row"><div class="risk-track"><div class="risk-fill" style="width:22%;background:var(--accent-green)"></div></div><span class="risk-num" style="color:var(--accent-green)">22</span></div></td><td><span class="badge badge-normal">Normal</span></td><td><span class="badge badge-done">Cleared</span></td><td><button class="btn btn-ghost btn-sm" disabled style="opacity:0.4">Done</button></td></tr>
+            <tr><td class="mono">CLM-87654</td><td class="mono">PT-66033</td><td>Metro General</td><td>,600</td><td><div class="risk-row"><div class="risk-track"><div class="risk-fill" style="width:88%;background:var(--accent-red)"></div></div><span class="risk-num" style="color:var(--accent-red)">88</span></div></td><td><span class="badge badge-high">High Risk</span></td><td><span class="badge badge-info">Under Review</span></td><td><button class="btn btn-danger btn-sm">Investigate</button></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div class="chart-eq">
+    <div class="card">
+      <div class="card-head"><div class="card-title"><svg viewBox="0 0 24 24"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/></svg>Suspicious Prescriptions</div></div>
+      <div class="card-body">
+        <table><thead><tr><th>Doctor</th><th>Drug</th><th>Count/24h</th><th>Threshold</th><th>Status</th></tr></thead>
+        <tbody>
+          <tr><td>Dr. R. Santos</td><td>Oxycodone 80mg</td><td style="color:var(--accent-red);font-weight:700">47</td><td style="color:var(--text-muted)">≤5</td><td><span class="badge badge-high">High Risk</span></td></tr>
+          <tr><td>Dr. M. Lim</td><td>Alprazolam 2mg</td><td style="color:var(--accent-yellow);font-weight:700">23</td><td style="color:var(--text-muted)">≤8</td><td><span class="badge badge-sus">Suspicious</span></td></tr>
+          <tr><td>Dr. A. Cruz</td><td>Tramadol 100mg</td><td style="color:var(--accent-yellow);font-weight:700">31</td><td style="color:var(--text-muted)">≤10</td><td><span class="badge badge-sus">Suspicious</span></td></tr>
+          <tr><td>Dr. J. Reyes</td><td>Zolpidem 10mg</td><td style="color:var(--accent-green);font-weight:700">4</td><td style="color:var(--text-muted)">≤6</td><td><span class="badge badge-normal">Normal</span></td></tr>
+        </tbody></table>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-head"><div class="card-title"><svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>Duplicate Patient Records</div><button class="card-action">Merge All</button></div>
+      <div class="card-body">
+        <table><thead><tr><th>Record A</th><th>Record B</th><th>Match %</th><th>Action</th></tr></thead>
+        <tbody>
+          <tr><td class="mono">PT-10042</td><td class="mono">PT-10098</td><td style="color:var(--accent-red);font-weight:700">97%</td><td><button class="btn btn-danger btn-sm">Merge</button></td></tr>
+          <tr><td class="mono">PT-22310</td><td class="mono">PT-22318</td><td style="color:var(--accent-orange);font-weight:700">84%</td><td><button class="btn btn-ghost btn-sm">Review</button></td></tr>
+          <tr><td class="mono">PT-45501</td><td class="mono">PT-45599</td><td style="color:var(--accent-yellow);font-weight:700">72%</td><td><button class="btn btn-ghost btn-sm">Review</button></td></tr>
+        </tbody></table>
+      </div>
+    </div>
+  </div>
+</section>
+<section class="page" id="page-health">
+<div class="page-header"><h1>Health Monitoring Panel</h1><p>Safety compliance tracking and IoT device monitoring</p></div>
+  <div class="chart-eq" style="margin-bottom:14px">
+    <div class="card">
+      <div class="card-head"><div class="card-title"><svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>Compliance Overview</div><button class="card-action">Full Report</button></div>
+      <div class="card-body">
+        <div class="rings-row">
+          <div class="ring-wrap"><svg class="ring-svg" width="72" height="72"><circle cx="36" cy="36" r="30" fill="none" stroke="rgba(255,255,255,0.06)" stroke-width="7"/><circle cx="36" cy="36" r="30" fill="none" stroke="#06d6a0" stroke-width="7" stroke-linecap="round" stroke-dasharray="188" stroke-dashoffset="19"/></svg><div class="ring-val">90%</div><div class="ring-sub">Infection<br>Control</div></div>
+          <div class="ring-wrap"><svg class="ring-svg" width="72" height="72"><circle cx="36" cy="36" r="30" fill="none" stroke="rgba(255,255,255,0.06)" stroke-width="7"/><circle cx="36" cy="36" r="30" fill="none" stroke="#1e5fa8" stroke-width="7" stroke-linecap="round" stroke-dasharray="188" stroke-dashoffset="11"/></svg><div class="ring-val">94%</div><div class="ring-sub">Medication<br>Safety</div></div>
+          <div class="ring-wrap"><svg class="ring-svg" width="72" height="72"><circle cx="36" cy="36" r="30" fill="none" stroke="rgba(255,255,255,0.06)" stroke-width="7"/><circle cx="36" cy="36" r="30" fill="none" stroke="#ffd166" stroke-width="7" stroke-linecap="round" stroke-dasharray="188" stroke-dashoffset="49"/></svg><div class="ring-val">74%</div><div class="ring-sub">Fire<br>Safety</div></div>
+          <div class="ring-wrap"><svg class="ring-svg" width="72" height="72"><circle cx="36" cy="36" r="30" fill="none" stroke="rgba(255,255,255,0.06)" stroke-width="7"/><circle cx="36" cy="36" r="30" fill="none" stroke="#00e5c0" stroke-width="7" stroke-linecap="round" stroke-dasharray="188" stroke-dashoffset="6"/></svg><div class="ring-val">97%</div><div class="ring-sub">Staff<br>Protocol</div></div>
+        </div>
+        <div style="margin-top:14px">
+          <div class="comp-item"><div class="comp-head"><span class="comp-name">Hand Hygiene Compliance</span><span class="comp-pct">90%</span></div><div class="comp-track"><div class="comp-bar" style="width:90%;background:var(--accent-green)"></div></div></div>
+          <div class="comp-item"><div class="comp-head"><span class="comp-name">PPE Usage Compliance</span><span class="comp-pct">87%</span></div><div class="comp-track"><div class="comp-bar" style="width:87%;background:var(--accent-cyan)"></div></div></div>
+          <div class="comp-item"><div class="comp-head"><span class="comp-name">Sterilization Protocol</span><span class="comp-pct">74%</span></div><div class="comp-track"><div class="comp-bar" style="width:74%;background:var(--accent-yellow)"></div></div></div>
+          <div class="comp-item"><div class="comp-head"><span class="comp-name">Waste Disposal</span><span class="comp-pct">62%</span></div><div class="comp-track"><div class="comp-bar" style="width:62%;background:var(--accent-orange)"></div></div></div>
+        </div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-head"><div class="card-title"><svg viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>Health Incidents — Weekly</div></div>
+      <div class="card-body"><canvas id="incidentBar" height="240"></canvas></div>
+    </div>
+  </div>
+
+  <div class="chart-eq" style="margin-bottom:14px">
+    <div class="card">
+      <div class="card-head"><div class="card-title"><svg viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>IoT Device Monitoring — Live</div><span class="badge badge-info">42 Online</span></div>
+      <div class="card-body">
+        <div class="iot-grid">
+          <div class="iot-card"><div class="iot-lbl">ICU Temp</div><div class="iot-val">22.4°C</div><div class="iot-st" style="color:var(--accent-green)">Normal</div></div>
+          <div class="iot-card"><div class="iot-lbl">OR Humidity</div><div class="iot-val">58%</div><div class="iot-st" style="color:var(--accent-green)">Normal</div></div>
+          <div class="iot-card"><div class="iot-lbl">Air Quality</div><div class="iot-val">AQI 42</div><div class="iot-st" style="color:var(--accent-green)">Good</div></div>
+          <div class="iot-card"><div class="iot-lbl">Pathogen</div><div class="iot-val">0.08%</div><div class="iot-st" style="color:var(--accent-yellow)">Elevated</div></div>
+          <div class="iot-card"><div class="iot-lbl">O₂ Supply</div><div class="iot-val">98.2%</div><div class="iot-st" style="color:var(--accent-green)">Optimal</div></div>
+          <div class="iot-card"><div class="iot-lbl">Noise ICU</div><div class="iot-val">51 dB</div><div class="iot-st" style="color:var(--accent-red)">High</div></div>
+        </div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-head"><div class="card-title"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>Health Incident Reports</div><button class="card-action">All Reports</button></div>
+      <div class="card-body">
+        <div class="inc-item"><div class="inc-dot" style="background:var(--accent-red)"></div><div><div class="inc-title">ICU Ward 3 — Pathogen Surge</div><div class="inc-meta">Metro General • 09:18 AM</div></div><span class="badge badge-high" style="margin-left:auto">Active</span></div>
+        <div class="inc-item"><div class="inc-dot" style="background:var(--accent-yellow)"></div><div><div class="inc-title">Ventilation Failure — OR Block B</div><div class="inc-meta">City Medical • 08:55 AM</div></div><span class="badge badge-sus" style="margin-left:auto">Pending</span></div>
+        <div class="inc-item"><div class="inc-dot" style="background:var(--accent-orange)"></div><div><div class="inc-title">Medication Mix-up — PT-50111</div><div class="inc-meta">St. Luke's • 08:30 AM</div></div><span class="badge badge-med" style="margin-left:auto">Review</span></div>
+        <div class="inc-item"><div class="inc-dot" style="background:var(--accent-green)"></div><div><div class="inc-title">Fire Drill Audit — 74% pass rate</div><div class="inc-meta">National Health • 08:00 AM</div></div><span class="badge badge-done" style="margin-left:auto">Logged</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-head"><div class="card-title"><svg viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>Daily Monitoring Activities by Hospital</div></div>
+    <div class="card-body"><canvas id="monitorBar" height="180"></canvas></div>
+  </div>
+</section>
+<section class="page" id="page-alerts">
+<div class="page-header"><h1>Alert &amp; Notification Center</h1><p>Real-time monitoring alerts and compliance violations</p></div>
+  <div class="kpi-grid" style="grid-template-columns:repeat(4,1fr)">
+    <div class="kpi-card" style="--kc:var(--accent-red);--kb:rgba(255,61,106,0.1)">
+      <div class="kpi-icon"><svg viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/></svg></div>
+      <div class="kpi-val">7</div><div class="kpi-lbl">Critical Alerts</div>
+      <div class="kpi-delta down">Immediate action</div>
+    </div>
+    <div class="kpi-card" style="--kc:var(--accent-yellow);--kb:rgba(255,209,102,0.1)">
+      <div class="kpi-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/></svg></div>
+      <div class="kpi-val">18</div><div class="kpi-lbl">Warnings</div>
+      <div class="kpi-delta warn">Under investigation</div>
+    </div>
+    <div class="kpi-card" style="--kc:var(--accent-blue);--kb:rgba(30,95,168,0.1)">
+      <div class="kpi-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg></div>
+      <div class="kpi-val">24</div><div class="kpi-lbl">Info Alerts</div>
+      <div class="kpi-delta up">No action needed</div>
+    </div>
+    <div class="kpi-card" style="--kc:var(--accent-green);--kb:rgba(6,214,160,0.1)">
+      <div class="kpi-icon"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div>
+      <div class="kpi-val">31</div><div class="kpi-lbl">Resolved Today</div>
+      <div class="kpi-delta up">72% resolution rate</div>
+    </div>
+  </div>
+
+  <div class="chart-eq" style="margin-bottom:14px">
+    <div class="card">
+      <div class="card-head"><div class="card-title"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/></svg>Alerts by Category</div></div>
+      <div class="card-body"><canvas id="alertPie" height="200"></canvas></div>
+    </div>
+    <div class="card">
+      <div class="card-head"><div class="card-title"><svg viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>Alerts by Hospital</div></div>
+      <div class="card-body" style="padding-top:16px">
+        <div class="comp-item"><div class="comp-head"><span class="comp-name">Metro General</span><span class="comp-pct" style="color:var(--accent-red)">14</span></div><div class="comp-track"><div class="comp-bar" style="width:85%;background:var(--accent-red)"></div></div></div>
+        <div class="comp-item"><div class="comp-head"><span class="comp-name">City Medical Center</span><span class="comp-pct" style="color:var(--accent-orange)">9</span></div><div class="comp-track"><div class="comp-bar" style="width:58%;background:var(--accent-orange)"></div></div></div>
+        <div class="comp-item"><div class="comp-head"><span class="comp-name">National Health Inst.</span><span class="comp-pct" style="color:var(--accent-yellow)">7</span></div><div class="comp-track"><div class="comp-bar" style="width:45%;background:var(--accent-yellow)"></div></div></div>
+        <div class="comp-item"><div class="comp-head"><span class="comp-name">St. Luke's Hospital</span><span class="comp-pct" style="color:var(--accent-cyan)">5</span></div><div class="comp-track"><div class="comp-bar" style="width:32%;background:var(--accent-cyan)"></div></div></div>
+        <div class="comp-item"><div class="comp-head"><span class="comp-name">Riverside Medical</span><span class="comp-pct" style="color:var(--accent-green)">2</span></div><div class="comp-track"><div class="comp-bar" style="width:13%;background:var(--accent-green)"></div></div></div>
+        <div style="margin-top:8px"><canvas id="alertLine" height="120"></canvas></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="sec-label"><span class="live"></span>Real-Time Alert Feed</div>
+  <div class="card">
+    <div class="card-head">
+      <div class="card-title"><svg viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>Notifications</div>
+      <button class="btn btn-ghost btn-sm">Mark All Read</button>
+    </div>
+    <div class="card-body">
+      <div class="alert-item">
+        <div class="alert-icon" style="background:rgba(255,61,106,0.12);color:var(--accent-red)"><svg viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/></svg></div>
+        <div class="alert-body"><div class="alert-title">Duplicate Claim Submitted — CLM-88219</div><div class="alert-desc">Same claim submitted twice within 3 minutes at Metro General Hospital. AI system flagged as high-risk.</div><div class="alert-foot"><span class="alert-time">09:42:18 AM</span><span class="badge badge-high">Critical</span><span class="badge badge-info">Fraud Detection</span></div></div>
+        <div class="alert-right"><button class="btn btn-danger btn-sm">Investigate</button></div>
+      </div>
+      <div class="alert-item">
+        <div class="alert-icon" style="background:rgba(255,61,106,0.12);color:var(--accent-red)"><svg viewBox="0 0 24 24"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/></svg></div>
+        <div class="alert-body"><div class="alert-title">Abnormal Opioid Prescription Pattern — Dr. Santos</div><div class="alert-desc">47 Oxycodone 80mg prescriptions in 24h. Normal threshold is 5. Possible drug diversion activity.</div><div class="alert-foot"><span class="alert-time">09:31:05 AM</span><span class="badge badge-high">Critical</span><span class="badge badge-info">Prescription Audit</span></div></div>
+        <div class="alert-right"><button class="btn btn-danger btn-sm">Investigate</button></div>
+      </div>
+      <div class="alert-item">
+        <div class="alert-icon" style="background:rgba(255,140,66,0.12);color:var(--accent-orange)"><svg viewBox="0 0 24 24"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg></div>
+        <div class="alert-body"><div class="alert-title">Infection Risk Alert — ICU Ward 3, Metro General</div><div class="alert-desc">IoT pathogen sensors reporting elevated levels at 0.08%. Quarantine protocol initiated.</div><div class="alert-foot"><span class="alert-time">09:18:44 AM</span><span class="badge badge-med">Warning</span><span class="badge badge-info">Health Safety</span></div></div>
+        <div class="alert-right"><button class="btn btn-ghost btn-sm">Monitor</button></div>
+      </div>
+      <div class="alert-item">
+        <div class="alert-icon" style="background:rgba(255,209,102,0.12);color:var(--accent-yellow)"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></div>
+        <div class="alert-body"><div class="alert-title">Unusual Billing Pattern — National Health Institute</div><div class="alert-desc">CLM-87811 for 2,100 shows billing codes inconsistent with procedure. AI confidence: 72% fraud.</div><div class="alert-foot"><span class="alert-time">09:05:21 AM</span><span class="badge badge-sus">Suspicious</span><span class="badge badge-info">Billing Audit</span></div></div>
+        <div class="alert-right"><button class="btn btn-ghost btn-sm">Review</button></div>
+      </div>
+      <div class="alert-item">
+        <div class="alert-icon" style="background:rgba(255,140,66,0.12);color:var(--accent-orange)"><svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></div>
+        <div class="alert-body"><div class="alert-title">Safety Compliance Violation — Fire Drill Audit</div><div class="alert-desc">National Health scored 74% on mandatory fire drill. Minimum threshold is 85%. Corrective action required.</div><div class="alert-foot"><span class="alert-time">08:55:00 AM</span><span class="badge badge-med">Warning</span><span class="badge badge-info">Compliance</span></div></div>
+        <div class="alert-right"><button class="btn btn-ghost btn-sm">Action</button></div>
+      </div>
+      <div class="alert-item">
+        <div class="alert-icon" style="background:rgba(6,214,160,0.12);color:var(--accent-green)"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div>
+        <div class="alert-body"><div class="alert-title">Claim CLM-87780 Auto-Cleared — Riverside Medical</div><div class="alert-desc">AI review confirmed legitimacy. Risk score dropped to 22. Approved for processing.</div><div class="alert-foot"><span class="alert-time">08:15:33 AM</span><span class="badge badge-normal">Resolved</span><span class="badge badge-info">Auto-Cleared</span></div></div>
+      </div>
+    </div>
+  </div>
+</section>
+<section class="page" id="page-reports">
+<div class="page-header"><h1>Reports</h1><p>Generate and export healthcare analytics reports</p></div>
+  <div class="kpi-grid" style="grid-template-columns:repeat(2,1fr)">
+    <div class="kpi-card" style="--kc:var(--accent-blue);--kb:rgba(30,95,168,0.1)">
+      <div class="kpi-icon"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></div>
+      <div class="kpi-val">148</div><div class="kpi-lbl">Reports Generated</div>
+      <div class="kpi-delta up">This month</div>
+    </div>
+    <div class="kpi-card" style="--kc:var(--accent-green);--kb:rgba(6,214,160,0.1)">
+      <div class="kpi-icon"><svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></div>
+      <div class="kpi-val">32</div><div class="kpi-lbl">Scheduled Reports</div>
+      <div class="kpi-delta up">Auto-generated</div>
+    </div>
+  </div>
+  <div class="sec-label">Recent Reports</div>
+  <div class="card">
+    <div class="card-head"><div class="card-title"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>Report Library</div><button class="card-action">+ New Report</button></div>
+    <div class="card-body">
+      <div class="tbl-row"><div class="tbl-main"><div class="tbl-primary">Monthly Fraud Summary — Feb 2026</div><div class="tbl-secondary">Generated Mar 1, 2026 • PDF • 2.4 MB</div></div><div class="tbl-right"><span class="badge badge-normal">Ready</span><button class="btn btn-ghost btn-sm">Download</button></div></div>
+      <div class="tbl-row"><div class="tbl-main"><div class="tbl-primary">Q1 Compliance Report 2026</div><div class="tbl-secondary">Generated Feb 28, 2026 • XLSX • 1.1 MB</div></div><div class="tbl-right"><span class="badge badge-normal">Ready</span><button class="btn btn-ghost btn-sm">Download</button></div></div>
+      <div class="tbl-row"><div class="tbl-main"><div class="tbl-primary">Hospital Safety Audit — Jan 2026</div><div class="tbl-secondary">Generated Feb 1, 2026 • PDF • 3.8 MB</div></div><div class="tbl-right"><span class="badge badge-normal">Ready</span><button class="btn btn-ghost btn-sm">Download</button></div></div>
+      <div class="tbl-row"><div class="tbl-main"><div class="tbl-primary">Claims Activity Analysis</div><div class="tbl-secondary">Generating... • Est. 2 min</div></div><div class="tbl-right"><span class="badge badge-info">Processing</span><button class="btn btn-ghost btn-sm" disabled style="opacity:0.4">Wait</button></div></div>
+      <div class="tbl-row"><div class="tbl-main"><div class="tbl-primary">IoT Device Health Report</div><div class="tbl-secondary">Scheduled: Mar 10, 2026 • Auto</div></div><div class="tbl-right"><span class="badge badge-sus">Scheduled</span><button class="btn btn-ghost btn-sm">Edit</button></div></div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-head"><div class="card-title"><svg viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>Report Volume — Last 6 Months</div></div>
+    <div class="card-body"><canvas id="reportsBar" height="180"></canvas></div>
+  </div>
+</section>
+<section class="page" id="page-insights">
+<div class="page-header"><h1>AI Insights</h1><p>Machine learning predictions and anomaly detection</p></div>
+  <div class="kpi-grid" style="grid-template-columns:repeat(2,1fr)">
+    <div class="kpi-card" style="--kc:var(--accent-cyan);--kb:rgba(232,160,32,0.1)">
+      <div class="kpi-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg></div>
+      <div class="kpi-val">94.2%</div><div class="kpi-lbl">AI Model Accuracy</div>
+      <div class="kpi-delta up">Above baseline</div>
+    </div>
+    <div class="kpi-card" style="--kc:var(--accent-red);--kb:rgba(255,61,106,0.1)">
+      <div class="kpi-icon"><svg viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/></svg></div>
+      <div class="kpi-val">23</div><div class="kpi-lbl">Anomalies Detected</div>
+      <div class="kpi-delta down">Last 24 hours</div>
+    </div>
+  </div>
+  <div class="sec-label">AI Detection Feed</div>
+  <div class="card">
+    <div class="card-head"><div class="card-title"><svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>Prediction Confidence Trends</div></div>
+    <div class="card-body"><canvas id="insightsLine" height="180"></canvas></div>
+  </div>
+  <div class="card">
+    <div class="card-head"><div class="card-title"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/></svg>Top AI Findings Today</div><button class="card-action">Full Analysis</button></div>
+    <div class="card-body">
+      <div class="alert-item">
+        <div class="alert-icon" style="background:rgba(255,61,106,0.12);color:var(--accent-red)"><svg viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/></svg></div>
+        <div class="alert-body"><div class="alert-title">Billing Pattern Anomaly — Metro General</div><div class="alert-desc">AI detected unusual clustering of high-value claims on weekends. Confidence: 91%</div><div class="alert-foot"><span class="alert-time">09:15 AM</span><span class="badge badge-high">91% Confidence</span></div></div>
+      </div>
+      <div class="alert-item">
+        <div class="alert-icon" style="background:rgba(255,209,102,0.12);color:var(--accent-yellow)"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg></div>
+        <div class="alert-body"><div class="alert-title">Predicted Fraud Risk Spike — Next 48h</div><div class="alert-desc">Model forecasts 34% increase in suspicious claims based on seasonal patterns.</div><div class="alert-foot"><span class="alert-time">08:50 AM</span><span class="badge badge-sus">78% Confidence</span></div></div>
+      </div>
+      <div class="alert-item">
+        <div class="alert-icon" style="background:rgba(6,214,160,0.12);color:var(--accent-green)"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div>
+        <div class="alert-body"><div class="alert-title">Compliance Improvement Detected</div><div class="alert-desc">Hand hygiene compliance trending +4% over 7-day window across 3 hospitals.</div><div class="alert-foot"><span class="alert-time">08:30 AM</span><span class="badge badge-normal">Positive Trend</span></div></div>
+      </div>
+      <div class="alert-item">
+        <div class="alert-icon" style="background:rgba(30,95,168,0.12);color:var(--accent-blue)"><svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></div>
+        <div class="alert-body"><div class="alert-title">Duplicate Identity Network Found</div><div class="alert-desc">Graph analysis identified 5 patient records linked to same identity across 2 hospitals.</div><div class="alert-foot"><span class="alert-time">08:10 AM</span><span class="badge badge-med">85% Confidence</span></div></div>
+      </div>
+    </div>
+  </div>
+</section>
+<section class="page" id="page-patients">
+<div class="page-header"><h1>Patient Records</h1><p>Search and manage patient data</p></div>
+  <div class="kpi-grid" style="grid-template-columns:repeat(2,1fr)">
+    <div class="kpi-card" style="--kc:var(--accent-cyan);--kb:rgba(232,160,32,0.1)">
+      <div class="kpi-icon"><svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></div>
+      <div class="kpi-val">84,201</div><div class="kpi-lbl">Total Patient Records</div>
+      <div class="kpi-delta up">+312 this week</div>
+    </div>
+    <div class="kpi-card" style="--kc:var(--accent-red);--kb:rgba(255,61,106,0.1)">
+      <div class="kpi-icon"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></div>
+      <div class="kpi-val">14</div><div class="kpi-lbl">Flagged Records</div>
+      <div class="kpi-delta down">Needs review</div>
+    </div>
+  </div>
+  <div class="sec-label">Patient Directory</div>
+  <div class="card">
+    <div class="card-head"><div class="card-title"><svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>Patient List</div><button class="card-action">+ Add Patient</button></div>
+    <div class="card-body">
+      <div class="chips">
+        <button class="chip active">All</button>
+        <button class="chip">Active</button>
+        <button class="chip">Flagged</button>
+        <button class="chip">Duplicates</button>
+      </div>
+      <div class="tbl-row"><div><div class="tbl-id">PT-10042</div></div><div class="tbl-main"><div class="tbl-primary">Juan dela Cruz</div><div class="tbl-secondary">Metro General • Admitted Mar 5</div></div><div class="tbl-right"><span class="badge badge-high">Flagged</span><button class="btn btn-ghost btn-sm">View</button></div></div>
+      <div class="tbl-row"><div><div class="tbl-id">PT-20891</div></div><div class="tbl-main"><div class="tbl-primary">Maria Santos</div><div class="tbl-secondary">City Medical • Admitted Mar 7</div></div><div class="tbl-right"><span class="badge badge-normal">Active</span><button class="btn btn-ghost btn-sm">View</button></div></div>
+      <div class="tbl-row"><div><div class="tbl-id">PT-33810</div></div><div class="tbl-main"><div class="tbl-primary">Roberto Reyes</div><div class="tbl-secondary">St. Luke's • Admitted Mar 6</div></div><div class="tbl-right"><span class="badge badge-normal">Active</span><button class="btn btn-ghost btn-sm">View</button></div></div>
+      <div class="tbl-row"><div><div class="tbl-id">PT-44120</div></div><div class="tbl-main"><div class="tbl-primary">Ana Bautista</div><div class="tbl-secondary">National Health • Discharged Mar 4</div></div><div class="tbl-right"><span class="badge badge-done">Discharged</span><button class="btn btn-ghost btn-sm">View</button></div></div>
+      <div class="tbl-row"><div><div class="tbl-id">PT-55200</div></div><div class="tbl-main"><div class="tbl-primary">Carlos Mendoza</div><div class="tbl-secondary">Riverside • Admitted Mar 8</div></div><div class="tbl-right"><span class="badge badge-normal">Active</span><button class="btn btn-ghost btn-sm">View</button></div></div>
+      <div class="tbl-row"><div><div class="tbl-id">PT-66033</div></div><div class="tbl-main"><div class="tbl-primary">Liza Ramos</div><div class="tbl-secondary">Metro General • Admitted Mar 3</div></div><div class="tbl-right"><span class="badge badge-sus">Duplicate</span><button class="btn btn-danger btn-sm">Merge</button></div></div>
+    </div>
+  </div>
+</section>
+<section class="page" id="page-settings">
+<div class="page-header"><h1>Settings</h1><p>System configuration and preferences</p></div>
+  <div class="card">
+    <div class="card-head"><div class="card-title"><svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>Account Settings</div></div>
+    <div class="card-body">
+      <div class="tbl-row"><div class="tbl-main"><div class="tbl-primary">Administrator Name</div><div class="tbl-secondary">Admin Director</div></div><button class="btn btn-ghost btn-sm">Edit</button></div>
+      <div class="tbl-row"><div class="tbl-main"><div class="tbl-primary">Email Address</div><div class="tbl-secondary"><a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="fe9f9a939790be8a8c9f9d9b9f97d0969b9f928a96">[email&#160;protected]</a></div></div><button class="btn btn-ghost btn-sm">Edit</button></div>
+      <div class="tbl-row"><div class="tbl-main"><div class="tbl-primary">Role</div><div class="tbl-secondary">Super Administrator</div></div><span class="badge badge-info">Locked</span></div>
+      <div class="tbl-row"><div class="tbl-main"><div class="tbl-primary">Two-Factor Authentication</div><div class="tbl-secondary">Enabled via Authenticator App</div></div><span class="badge badge-normal">Active</span></div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-head"><div class="card-title"><svg viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>Notification Preferences</div></div>
+    <div class="card-body">
+      <div class="tbl-row"><div class="tbl-main"><div class="tbl-primary">Critical Fraud Alerts</div><div class="tbl-secondary">Push + Email</div></div><span class="badge badge-normal">On</span></div>
+      <div class="tbl-row"><div class="tbl-main"><div class="tbl-primary">Health Safety Warnings</div><div class="tbl-secondary">Push only</div></div><span class="badge badge-normal">On</span></div>
+      <div class="tbl-row"><div class="tbl-main"><div class="tbl-primary">Weekly Reports</div><div class="tbl-secondary">Email every Monday 8 AM</div></div><span class="badge badge-normal">On</span></div>
+      <div class="tbl-row"><div class="tbl-main"><div class="tbl-primary">System Maintenance Alerts</div><div class="tbl-secondary">Disabled</div></div><span class="badge badge-done">Off</span></div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-head"><div class="card-title"><svg viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>Security Settings</div></div>
+    <div class="card-body">
+      <div class="tbl-row"><div class="tbl-main"><div class="tbl-primary">Session Timeout</div><div class="tbl-secondary">30 minutes inactivity</div></div><button class="btn btn-ghost btn-sm">Change</button></div>
+      <div class="tbl-row"><div class="tbl-main"><div class="tbl-primary">IP Whitelist</div><div class="tbl-secondary">4 IPs configured</div></div><button class="btn btn-ghost btn-sm">Manage</button></div>
+      <div class="tbl-row"><div class="tbl-main"><div class="tbl-primary">Data Encryption</div><div class="tbl-secondary">AES-256 End-to-End</div></div><span class="badge badge-normal">Active</span></div>
+      <div class="tbl-row"><div class="tbl-main"><div class="tbl-primary">Last Password Change</div><div class="tbl-secondary">Feb 15, 2026</div></div><button class="btn btn-danger btn-sm">Update</button></div>
+    </div>
+  </div>
+</section>
+<section class="page" id="page-audit">
+<div class="page-header"><h1>Audit Logs</h1><p>Full system activity trail and access history</p></div>
+  <div class="kpi-grid" style="grid-template-columns:repeat(2,1fr)">
+    <div class="kpi-card" style="--kc:var(--accent-blue);--kb:rgba(30,95,168,0.1)">
+      <div class="kpi-icon"><svg viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></div>
+      <div class="kpi-val">3,841</div><div class="kpi-lbl">Log Entries Today</div>
+      <div class="kpi-delta up">All captured</div>
+    </div>
+    <div class="kpi-card" style="--kc:var(--accent-red);--kb:rgba(255,61,106,0.1)">
+      <div class="kpi-icon"><svg viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/></svg></div>
+      <div class="kpi-val">6</div><div class="kpi-lbl">Suspicious Access</div>
+      <div class="kpi-delta down">Needs review</div>
+    </div>
+  </div>
+  <div class="sec-label">Activity Log</div>
+  <div class="card">
+    <div class="card-head"><div class="card-title"><svg viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>System Events</div><button class="card-action">Export Logs</button></div>
+    <div class="card-body">
+      <div class="chips">
+        <button class="chip active">All</button>
+        <button class="chip">Login</button>
+        <button class="chip">Data Access</button>
+        <button class="chip">Changes</button>
+        <button class="chip">Alerts</button>
+      </div>
+      <div class="tbl-row"><div><div class="tbl-id mono" style="font-size:9px">09:42:18</div></div><div class="tbl-main"><div class="tbl-primary">Fraud alert triggered — CLM-88219</div><div class="tbl-secondary">System • Auto-detection</div></div><span class="badge badge-high">Alert</span></div>
+      <div class="tbl-row"><div><div class="tbl-id mono" style="font-size:9px">09:38:02</div></div><div class="tbl-main"><div class="tbl-primary">Admin Director viewed Fraud Detection</div><div class="tbl-secondary">IP: 192.168.1.4 • Chrome</div></div><span class="badge badge-done">Access</span></div>
+      <div class="tbl-row"><div><div class="tbl-id mono" style="font-size:9px">09:31:05</div></div><div class="tbl-main"><div class="tbl-primary">Prescription flag raised — Dr. Santos</div><div class="tbl-secondary">AI Engine • Auto</div></div><span class="badge badge-high">Alert</span></div>
+      <div class="tbl-row"><div><div class="tbl-id mono" style="font-size:9px">09:20:44</div></div><div class="tbl-main"><div class="tbl-primary">Patient record PT-10042 accessed</div><div class="tbl-secondary">User: <a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="3551471b595c5875565c414c5850511b455d">[email&#160;protected]</a> • Mobile</div></div><span class="badge badge-sus">Review</span></div>
+      <div class="tbl-row"><div><div class="tbl-id mono" style="font-size:9px">09:15:10</div></div><div class="tbl-main"><div class="tbl-primary">Report exported — Monthly Fraud Summary</div><div class="tbl-secondary">Admin Director • PDF</div></div><span class="badge badge-done">Export</span></div>
+      <div class="tbl-row"><div><div class="tbl-id mono" style="font-size:9px">09:00:00</div></div><div class="tbl-main"><div class="tbl-primary">System health check passed</div><div class="tbl-secondary">All 42 IoT devices online</div></div><span class="badge badge-normal">System</span></div>
+      <div class="tbl-row"><div><div class="tbl-id mono" style="font-size:9px">08:55:33</div></div><div class="tbl-main"><div class="tbl-primary">Login — Admin Director</div><div class="tbl-secondary">IP: 192.168.1.4 • 2FA verified</div></div><span class="badge badge-normal">Login</span></div>
+    </div>
+  </div>
+</section>
+</main>
+
+
+<!-- MODAL BACKDROP -->
+<div class="modal-backdrop" id="modalBackdrop" onclick="if(event.target===this)closeModal()">
+  <div class="modal" id="modalBox">
+    <div class="modal-head">
+      <div class="modal-head-left">
+        <div class="modal-icon" id="modalIconWrap">
+          <svg id="modalIconSvg" viewBox="0 0 24 24"></svg>
+        </div>
+        <div>
+          <div class="modal-title" id="modalTitle"></div>
+          <div class="modal-subtitle" id="modalSubtitle"></div>
+        </div>
+      </div>
+      <button class="modal-close" onclick="closeModal()">&#x2715;</button>
+    </div>
+    <div class="modal-body" id="modalBody"></div>
+    <div class="modal-footer" id="modalFooter"></div>
+  </div>
+</div>
+
+<!-- NOTIFICATION PANEL -->
+<div class="notif-panel" id="notifPanel">
+  <div class="notif-panel-head">
+    <div class="notif-panel-title">Notifications <span class="notif-count-badge" id="notifBadge">3</span></div>
+    <button class="notif-mark-btn" onclick="markAllRead()">Mark all read</button>
+  </div>
+  <div class="notif-item unread" onclick="openModal('inv-88219');closeNotifPanel()">
+    <div class="notif-unread-dot" id="nd1"></div>
+    <div class="notif-icon-wrap" style="background:rgba(200,53,88,0.1);color:var(--accent-red)"><svg viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/></svg></div>
+    <div class="notif-content"><div class="notif-title">Duplicate Claim — CLM-88219</div><div class="notif-desc">Metro General Hospital · High Risk</div><div class="notif-time">09:42 AM</div></div>
+  </div>
+  <div class="notif-item unread" onclick="openModal('inv-santos');closeNotifPanel()">
+    <div class="notif-unread-dot" id="nd2"></div>
+    <div class="notif-icon-wrap" style="background:rgba(200,53,88,0.1);color:var(--accent-red)"><svg viewBox="0 0 24 24"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/></svg></div>
+    <div class="notif-content"><div class="notif-title">Abnormal Prescription — Dr. Santos</div><div class="notif-desc">47 opioid scripts in 24h · Threshold ≤5</div><div class="notif-time">09:31 AM</div></div>
+  </div>
+  <div class="notif-item unread" onclick="openModal('monitor-icu');closeNotifPanel()">
+    <div class="notif-unread-dot" id="nd3"></div>
+    <div class="notif-icon-wrap" style="background:rgba(255,140,66,0.1);color:var(--accent-orange)"><svg viewBox="0 0 24 24"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg></div>
+    <div class="notif-content"><div class="notif-title">Infection Risk — ICU Ward 3</div><div class="notif-desc">Elevated pathogen levels · Metro General</div><div class="notif-time">09:18 AM</div></div>
+  </div>
+  <div class="notif-item" onclick="openModal('rev-billing');closeNotifPanel()">
+    <div class="notif-read-dot"></div>
+    <div class="notif-icon-wrap" style="background:rgba(160,126,10,0.1);color:var(--accent-yellow)"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/></svg></div>
+    <div class="notif-content"><div class="notif-title">Unusual Billing — National Health</div><div class="notif-desc">CLM-87811 · 72% fraud confidence</div><div class="notif-time">09:05 AM</div></div>
+  </div>
+  <div class="notif-item" onclick="openModal('action-fire');closeNotifPanel()">
+    <div class="notif-read-dot"></div>
+    <div class="notif-icon-wrap" style="background:rgba(26,85,152,0.1);color:var(--accent-blue)"><svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></div>
+    <div class="notif-content"><div class="notif-title">Fire Drill Failure — National Health</div><div class="notif-desc">Scored 74% · Minimum required 85%</div><div class="notif-time">08:55 AM</div></div>
+  </div>
+  <div class="notif-item" onclick="closeNotifPanel()">
+    <div class="notif-read-dot"></div>
+    <div class="notif-icon-wrap" style="background:rgba(8,122,82,0.1);color:var(--accent-green)"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div>
+    <div class="notif-content"><div class="notif-title">Claim CLM-87780 Auto-Cleared</div><div class="notif-desc">Riverside Medical · Risk score 22</div><div class="notif-time">08:15 AM</div></div>
+  </div>
+  <div class="notif-panel-foot">
+    <button onclick="showPage('alerts',document.querySelectorAll('.nav-item')[3]);closeNotifPanel()">View all alerts &rarr;</button>
+  </div>
+</div>
+
+<!-- PROFILE POPUP -->
+<div class="profile-popup" id="profilePopup">
+  <div class="profile-popup-head">
+    <div class="profile-avatar-lg">AD</div>
+    <div><div class="profile-name">Admin Director</div><div class="profile-role">Super Administrator</div></div>
+  </div>
+  <div class="profile-body">
+    <div class="profile-row"><svg viewBox="0 0 24 24"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg><div class="profile-row-text"><a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="e382878e8a8da39791828086828acd8b86828f978b">[email&#160;protected]</a></div></div>
+    <div class="profile-row"><svg viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg><div class="profile-row-text">2FA Enabled &mdash; Authenticator App</div></div>
+    <div class="profile-row"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg><div class="profile-row-text">Last login: Today, 08:55 AM</div></div>
+    <div class="profile-row"><svg viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg><div class="profile-row-text">IP: 192.168.1.4 &mdash; Manila, PH</div></div>
+    <div class="profile-row"><svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg><div class="profile-row-text" style="color:var(--accent-green);font-weight:600">All Systems Online</div></div>
+  </div>
+  <div class="profile-footer">
+    <button class="profile-logout" onclick="openModal('logout');closeProfilePopup()">Sign Out</button>
+  </div>
+</div>
+
+<!-- SEARCH RESULTS -->
+<div class="search-results" id="searchResults"></div>
+
+<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
+
+// ══════════════════════════════════════════
+// MODAL DATA
+// ══════════════════════════════════════════
+var MODALS = {
+  'export-trend': { ib:'rgba(26,85,152,0.12)', ic:'var(--accent-blue)', isvg:'<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>', t:'Export Complete', s:'Fraud Trends — 30 Days',
+    b:'<div class="modal-status-bar" style="background:rgba(8,122,82,0.08);border:1px solid rgba(8,122,82,0.2)"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--accent-green)" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg><span style="font-size:12px;font-weight:600;color:var(--accent-green)">File saved to Downloads</span></div><div class="modal-row"><div><div class="modal-row-label">File</div><div class="modal-row-mono">fraud_trends_30d.csv</div></div></div><div class="modal-row"><div><div class="modal-row-label">Records</div><div class="modal-row-value">30 rows &middot; 48 KB</div></div></div><div class="modal-row"><div><div class="modal-row-label">Exported</div><div class="modal-row-mono">Mar 12, 2026 &mdash; 09:44 AM</div></div></div>',
+    f:'<button class="btn btn-primary btn-sm" onclick="closeModal()">Done</button>' },
+
+  'export-csv': { ib:'rgba(26,85,152,0.12)', ic:'var(--accent-blue)', isvg:'<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>', t:'Export Complete', s:'37 Flagged Claims',
+    b:'<div class="modal-status-bar" style="background:rgba(8,122,82,0.08);border:1px solid rgba(8,122,82,0.2)"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--accent-green)" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg><span style="font-size:12px;font-weight:600;color:var(--accent-green)">File saved to Downloads</span></div><div class="modal-row"><div><div class="modal-row-label">File</div><div class="modal-row-mono">flagged_claims_37.csv</div></div></div><div class="modal-row"><div><div class="modal-row-label">Breakdown</div><div class="modal-row-value">7 High Risk &middot; 18 Suspicious &middot; 12 Normal</div></div></div>',
+    f:'<button class="btn btn-primary btn-sm" onclick="closeModal()">Done</button>' },
+
+  'review-all': { ib:'rgba(200,53,88,0.1)', ic:'var(--accent-red)', isvg:'<path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/>', t:'Batch Review Initiated', s:'37 Claims Queued',
+    b:'<div class="modal-row"><div><div class="modal-row-label">High Risk</div><div class="modal-row-value" style="color:var(--accent-red);font-weight:700">7 &mdash; Assigned to Team A</div></div></div><div class="modal-row"><div><div class="modal-row-label">Suspicious</div><div class="modal-row-value" style="color:var(--accent-yellow);font-weight:700">18 &mdash; Queued for Review</div></div></div><div class="modal-row"><div><div class="modal-row-label">Est. Completion</div><div class="modal-row-value">3&ndash;5 business days</div></div></div>',
+    f:'<button class="btn btn-ghost btn-sm" onclick="closeModal()">Cancel</button><button class="btn btn-danger btn-sm" onclick="closeModal()">Confirm Review</button>' },
+
+  'inv-88219': { ib:'rgba(200,53,88,0.1)', ic:'var(--accent-red)', isvg:'<circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>', t:'Investigation Opened', s:'CLM-88219 &mdash; Metro General',
+    b:'<div class="modal-status-bar" style="background:rgba(200,53,88,0.07);border:1px solid rgba(200,53,88,0.2)"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--accent-red)" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/></svg><span style="font-size:12px;font-weight:600;color:var(--accent-red)">Critical &mdash; Immediate Action Required</span></div><div class="modal-row"><div><div class="modal-row-label">Case ID</div><div class="modal-row-mono">INV-2026-0341</div></div><span class="badge badge-high">Open</span></div><div class="modal-row"><div><div class="modal-row-label">Patient</div><div class="modal-row-mono">PT-10042 &mdash; Juan dela Cruz</div></div></div><div class="modal-row"><div><div class="modal-row-label">Amount</div><div class="modal-row-value">&#8369;2,400.00</div></div></div><div class="modal-row"><div><div class="modal-row-label">AI Risk Score</div><div class="modal-row-value" style="color:var(--accent-red);font-weight:700">91/100 &mdash; Duplicate Submission</div></div></div><div class="modal-row"><div><div class="modal-row-label">Assigned To</div><div class="modal-row-value">Fraud Investigator Team A</div></div></div>',
+    f:'<button class="btn btn-ghost btn-sm" onclick="closeModal()">Close</button><button class="btn btn-danger btn-sm" onclick="closeModal()">Escalate to Supervisor</button>' },
+
+  'inv-88105': { ib:'rgba(200,53,88,0.1)', ic:'var(--accent-red)', isvg:'<circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>', t:'Investigation Opened', s:'CLM-88105 &mdash; City Medical',
+    b:'<div class="modal-row"><div><div class="modal-row-label">Case ID</div><div class="modal-row-mono">INV-2026-0342</div></div><span class="badge badge-high">Open</span></div><div class="modal-row"><div><div class="modal-row-label">Patient</div><div class="modal-row-mono">PT-20891 &mdash; Maria Santos</div></div></div><div class="modal-row"><div><div class="modal-row-label">Amount</div><div class="modal-row-value">&#8369;1,750.00</div></div></div><div class="modal-row"><div><div class="modal-row-label">AI Risk Score</div><div class="modal-row-value" style="color:var(--accent-red);font-weight:700">85/100 &mdash; Upcoding Detected</div></div></div>',
+    f:'<button class="btn btn-ghost btn-sm" onclick="closeModal()">Close</button><button class="btn btn-danger btn-sm" onclick="closeModal()">Confirm Investigation</button>' },
+
+  'inv-87654': { ib:'rgba(200,53,88,0.1)', ic:'var(--accent-red)', isvg:'<circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>', t:'Investigation Opened', s:'CLM-87654 &mdash; Metro General',
+    b:'<div class="modal-row"><div><div class="modal-row-label">Case ID</div><div class="modal-row-mono">INV-2026-0343</div></div><span class="badge badge-high">Open</span></div><div class="modal-row"><div><div class="modal-row-label">Patient</div><div class="modal-row-mono">PT-66033 &mdash; Liza Ramos</div></div></div><div class="modal-row"><div><div class="modal-row-label">AI Risk Score</div><div class="modal-row-value" style="color:var(--accent-red);font-weight:700">88/100 &mdash; Phantom Billing</div></div></div>',
+    f:'<button class="btn btn-ghost btn-sm" onclick="closeModal()">Close</button><button class="btn btn-danger btn-sm" onclick="closeModal()">Confirm Investigation</button>' },
+
+  'rev-87932': { ib:'rgba(160,126,10,0.1)', ic:'var(--accent-yellow)', isvg:'<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/>', t:'Compliance Review', s:"CLM-87932 \u2014 St. Luke's",
+    b:'<div class="modal-row"><div><div class="modal-row-label">Patient</div><div class="modal-row-mono">PT-33810 &mdash; Roberto Reyes</div></div></div><div class="modal-row"><div><div class="modal-row-label">Amount</div><div class="modal-row-value">&#8369;1,200.00</div></div></div><div class="modal-row"><div><div class="modal-row-label">AI Risk Score</div><div class="modal-row-value" style="color:var(--accent-yellow);font-weight:700">67/100 &mdash; Suspicious Activity</div></div></div><div class="modal-row"><div><div class="modal-row-label">Est. Review</div><div class="modal-row-value">2 business days</div></div></div>',
+    f:'<button class="btn btn-ghost btn-sm" onclick="closeModal()">Close</button><button class="btn btn-primary btn-sm" onclick="closeModal()">Send to Auditor</button>' },
+
+  'rev-87811': { ib:'rgba(160,126,10,0.1)', ic:'var(--accent-yellow)', isvg:'<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/>', t:'Compliance Review', s:'CLM-87811 &mdash; National Health',
+    b:'<div class="modal-row"><div><div class="modal-row-label">Amount</div><div class="modal-row-value">&#8369;2,100.00</div></div></div><div class="modal-row"><div><div class="modal-row-label">Issue</div><div class="modal-row-value">Billing codes inconsistent with procedure</div></div></div><div class="modal-row"><div><div class="modal-row-label">AI Fraud Confidence</div><div class="modal-row-value" style="color:var(--accent-yellow);font-weight:700">72%</div></div></div>',
+    f:'<button class="btn btn-ghost btn-sm" onclick="closeModal()">Close</button><button class="btn btn-primary btn-sm" onclick="closeModal()">Flag for Auditor</button>' },
+
+  'merge-all': { ib:'rgba(200,53,88,0.1)', ic:'var(--accent-red)', isvg:'<path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>', t:'Merge All Duplicates', s:'3 Record Pairs',
+    b:'<div class="modal-row"><div><div class="modal-row-label">97% Match</div><div class="modal-row-mono">PT-10042 &harr; PT-10098</div></div><span class="badge badge-high">Auto-merge</span></div><div class="modal-row"><div><div class="modal-row-label">84% Match</div><div class="modal-row-mono">PT-22310 &harr; PT-22318</div></div><span class="badge badge-sus">Review</span></div><div class="modal-row"><div><div class="modal-row-label">72% Match</div><div class="modal-row-mono">PT-45501 &harr; PT-45599</div></div><span class="badge badge-sus">Review</span></div>',
+    f:'<button class="btn btn-ghost btn-sm" onclick="closeModal()">Cancel</button><button class="btn btn-danger btn-sm" onclick="closeModal()">Confirm All Merges</button>' },
+
+  'merge-10042': { ib:'rgba(200,53,88,0.1)', ic:'var(--accent-red)', isvg:'<path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>', t:'Merge Patient Records', s:'PT-10042 \u2194 PT-10098',
+    b:'<div class="modal-row"><div><div class="modal-row-label">Confidence</div><div class="modal-row-value" style="color:var(--accent-red);font-weight:700">97% &mdash; Auto-merge recommended</div></div></div><div class="modal-row"><div><div class="modal-row-label">Primary</div><div class="modal-row-mono">PT-10042 &mdash; Juan dela Cruz</div></div></div><div class="modal-row"><div><div class="modal-row-label">Duplicate</div><div class="modal-row-mono">PT-10098 &mdash; Juan D. Cruz</div></div></div><div class="modal-row"><div><div class="modal-row-label">Effect</div><div class="modal-row-value">3 claims reassigned &middot; duplicate archived</div></div></div>',
+    f:'<button class="btn btn-ghost btn-sm" onclick="closeModal()">Cancel</button><button class="btn btn-danger btn-sm" onclick="closeModal()">Confirm Merge</button>' },
+
+  'rev-22310': { ib:'rgba(160,126,10,0.1)', ic:'var(--accent-yellow)', isvg:'<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>', t:'Record Review', s:'PT-22310 \u2194 PT-22318',
+    b:'<div class="modal-row"><div><div class="modal-row-label">Confidence</div><div class="modal-row-value" style="color:var(--accent-orange);font-weight:700">84% &mdash; Manual review required</div></div></div><div class="modal-row"><div><div class="modal-row-label">Record A</div><div class="modal-row-mono">PT-22310 &mdash; Pedro Santos</div></div></div><div class="modal-row"><div><div class="modal-row-label">Record B</div><div class="modal-row-mono">PT-22318 &mdash; Pedro G. Santos</div></div></div><div class="modal-row"><div><div class="modal-row-label">Discrepancy</div><div class="modal-row-value">Different birth dates on file</div></div></div>',
+    f:'<button class="btn btn-ghost btn-sm" onclick="closeModal()">Skip</button><button class="btn btn-primary btn-sm" onclick="closeModal()">Send to Records Team</button>' },
+
+  'rev-45501': { ib:'rgba(160,126,10,0.1)', ic:'var(--accent-yellow)', isvg:'<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>', t:'Record Review', s:'PT-45501 \u2194 PT-45599',
+    b:'<div class="modal-row"><div><div class="modal-row-label">Confidence</div><div class="modal-row-value" style="color:var(--accent-yellow);font-weight:700">72% &mdash; Manual review required</div></div></div><div class="modal-row"><div><div class="modal-row-label">Record A</div><div class="modal-row-mono">PT-45501 &mdash; Rosa Mendoza</div></div></div><div class="modal-row"><div><div class="modal-row-label">Record B</div><div class="modal-row-mono">PT-45599 &mdash; Rosario Mendoza</div></div></div><div class="modal-row"><div><div class="modal-row-label">Discrepancy</div><div class="modal-row-value">Possible nickname variation</div></div></div>',
+    f:'<button class="btn btn-ghost btn-sm" onclick="closeModal()">Skip</button><button class="btn btn-primary btn-sm" onclick="closeModal()">Send to Records Team</button>' },
+
+  'full-report': { ib:'rgba(8,122,82,0.1)', ic:'var(--accent-green)', isvg:'<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>', t:'Compliance Report Ready', s:'March 2026',
+    b:'<div class="modal-status-bar" style="background:rgba(8,122,82,0.08);border:1px solid rgba(8,122,82,0.2)"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--accent-green)" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg><span style="font-size:12px;font-weight:600;color:var(--accent-green)">Report ready for download</span></div><div class="modal-row"><div><div class="modal-row-label">File</div><div class="modal-row-mono">compliance_report_mar2026.pdf</div></div></div><div class="modal-row"><div><div class="modal-row-label">Overall Score</div><div class="modal-row-value" style="color:var(--accent-green);font-weight:700">88.4% &mdash; Good Standing</div></div></div><div class="modal-row"><div><div class="modal-row-label">Violations</div><div class="modal-row-value" style="color:var(--accent-orange)">3 Active &mdash; Fire Safety, Waste Disposal</div></div></div><div class="modal-row"><div><div class="modal-row-label">Hospitals</div><div class="modal-row-value">6 facilities covered</div></div></div>',
+    f:'<button class="btn btn-ghost btn-sm" onclick="closeModal()">Close</button><button class="btn btn-primary btn-sm" onclick="closeModal()">Download PDF</button>' },
+
+  'all-reports': { ib:'rgba(200,96,30,0.1)', ic:'var(--accent-orange)', isvg:'<circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>', t:'Health Incident Reports', s:'4 Active Incidents',
+    b:'<div class="modal-row"><div><div class="modal-row-label">Critical</div><div class="modal-row-value" style="color:var(--accent-red)">ICU Ward 3 &mdash; Pathogen Surge (Metro General)</div></div></div><div class="modal-row"><div><div class="modal-row-label">Warning</div><div class="modal-row-value" style="color:var(--accent-yellow)">Ventilation Failure OR Block B (City Medical)</div></div></div><div class="modal-row"><div><div class="modal-row-label">Review</div><div class="modal-row-value" style="color:var(--accent-orange)">Medication Mix-up PT-50111 (St. Luke\'s)</div></div></div><div class="modal-row"><div><div class="modal-row-label">Logged</div><div class="modal-row-value" style="color:var(--accent-green)">Fire Drill Audit 74% (National Health)</div></div></div>',
+    f:'<button class="btn btn-ghost btn-sm" onclick="closeModal()">Close</button><button class="btn btn-primary btn-sm" onclick="closeModal()">Download All</button>' },
+
+  'mark-read': { ib:'rgba(8,122,82,0.1)', ic:'var(--accent-green)', isvg:'<polyline points="20 6 9 17 4 12"/>', t:'All Notifications Cleared', s:'49 alerts marked as read',
+    b:'<div class="modal-status-bar" style="background:rgba(8,122,82,0.08);border:1px solid rgba(8,122,82,0.2)"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--accent-green)" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg><span style="font-size:12px;font-weight:600;color:var(--accent-green)">Badge cleared</span></div><div class="modal-row"><div><div class="modal-row-label">Critical</div><div class="modal-row-value">7 cleared</div></div></div><div class="modal-row"><div><div class="modal-row-label">Warnings</div><div class="modal-row-value">18 cleared</div></div></div><div class="modal-row"><div><div class="modal-row-label">Info</div><div class="modal-row-value">24 cleared</div></div></div>',
+    f:'<button class="btn btn-primary btn-sm" onclick="closeModal()">Done</button>' },
+
+  'inv-santos': { ib:'rgba(200,53,88,0.1)', ic:'var(--accent-red)', isvg:'<circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>', t:'Prescription Investigation', s:'Dr. R. Santos &mdash; Abnormal Pattern',
+    b:'<div class="modal-status-bar" style="background:rgba(200,53,88,0.07);border:1px solid rgba(200,53,88,0.2)"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--accent-red)" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/></svg><span style="font-size:12px;font-weight:600;color:var(--accent-red)">Possible Drug Diversion</span></div><div class="modal-row"><div><div class="modal-row-label">Drug</div><div class="modal-row-value">Oxycodone 80mg</div></div></div><div class="modal-row"><div><div class="modal-row-label">Scripts / 24h</div><div class="modal-row-value" style="color:var(--accent-red);font-weight:700">47 &mdash; Threshold &le;5</div></div></div><div class="modal-row"><div><div class="modal-row-label">Medical Board</div><div class="modal-row-value" style="color:var(--accent-orange)">Notified &mdash; Awaiting Response</div></div></div><div class="modal-row"><div><div class="modal-row-label">DEA Alert</div><div class="modal-row-value" style="color:var(--accent-red)">Flagged for Review</div></div></div>',
+    f:'<button class="btn btn-ghost btn-sm" onclick="closeModal()">Close</button><button class="btn btn-danger btn-sm" onclick="closeModal()">File DEA Report</button>' },
+
+  'monitor-icu': { ib:'rgba(255,140,66,0.1)', ic:'var(--accent-orange)', isvg:'<path d="M22 12h-4l-3 9L9 3l-3 9H2"/>', t:'ICU Ward 3 &mdash; Priority Monitor', s:'Metro General Hospital',
+    b:'<div class="modal-status-bar" style="background:rgba(255,140,66,0.08);border:1px solid rgba(255,140,66,0.25)"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--accent-orange)" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/></svg><span style="font-size:12px;font-weight:600;color:var(--accent-orange)">Elevated Pathogen &mdash; Active Monitoring</span></div><div class="modal-row"><div><div class="modal-row-label">Pathogen Level</div><div class="modal-row-value" style="color:var(--accent-orange);font-weight:700">0.08% &mdash; Safe threshold: 0.05%</div></div></div><div class="modal-row"><div><div class="modal-row-label">Interval</div><div class="modal-row-value">Every 5 minutes via IoT sensors</div></div></div><div class="modal-row"><div><div class="modal-row-label">Quarantine</div><div class="modal-row-value">Protocol initiated &mdash; Ward 3B isolated</div></div></div>',
+    f:'<button class="btn btn-ghost btn-sm" onclick="closeModal()">Close</button><button class="btn btn-primary btn-sm" onclick="closeModal()">Escalate to CMO</button>' },
+
+  'rev-billing': { ib:'rgba(160,126,10,0.1)', ic:'var(--accent-yellow)', isvg:'<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>', t:'Billing Review Initiated', s:'CLM-87811 &mdash; National Health',
+    b:'<div class="modal-row"><div><div class="modal-row-label">Amount</div><div class="modal-row-value">&#8369;2,100.00</div></div></div><div class="modal-row"><div><div class="modal-row-label">Issue</div><div class="modal-row-value">Codes inconsistent with reported procedure</div></div></div><div class="modal-row"><div><div class="modal-row-label">AI Confidence</div><div class="modal-row-value" style="color:var(--accent-yellow);font-weight:700">72% fraud probability</div></div></div><div class="modal-row"><div><div class="modal-row-label">Sent To</div><div class="modal-row-value">Compliance Auditor &mdash; Est. 2 business days</div></div></div>',
+    f:'<button class="btn btn-ghost btn-sm" onclick="closeModal()">Close</button><button class="btn btn-primary btn-sm" onclick="closeModal()">Confirm</button>' },
+
+  'action-fire': { ib:'rgba(200,96,30,0.1)', ic:'var(--accent-orange)', isvg:'<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>', t:'Corrective Action Plan', s:'National Health &mdash; Fire Drill Failure',
+    b:'<div class="modal-status-bar" style="background:rgba(255,140,66,0.08);border:1px solid rgba(255,140,66,0.25)"><span style="font-size:12px;font-weight:600;color:var(--accent-orange)">Score 74% &mdash; Minimum required: 85%</span></div><div class="modal-row"><div><div class="modal-row-label">Action</div><div class="modal-row-value">Mandatory re-drill before next inspection</div></div></div><div class="modal-row"><div><div class="modal-row-label">Re-drill Date</div><div class="modal-row-mono">March 20, 2026 &mdash; 9:00 AM</div></div></div><div class="modal-row"><div><div class="modal-row-label">Plan</div><div class="modal-row-value">Staff training + evacuation route review</div></div></div>',
+    f:'<button class="btn btn-ghost btn-sm" onclick="closeModal()">Close</button><button class="btn btn-primary btn-sm" onclick="closeModal()">Confirm Plan</button>' },
+
+  'new-report': { ib:'rgba(26,85,152,0.12)', ic:'var(--accent-blue)', isvg:'<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/>', t:'New Report', s:'Select report type',
+    b:'<div class="modal-row" style="cursor:pointer" onclick="closeModal()"><div><div class="modal-row-value">&#x1F4CA; Fraud Summary Report</div><div class="modal-row-label" style="margin-top:3px">All flagged claims, risk scores, resolutions</div></div></div><div class="modal-row" style="cursor:pointer" onclick="closeModal()"><div><div class="modal-row-value">&#x1F3E5; Compliance Audit Report</div><div class="modal-row-label" style="margin-top:3px">Safety scores, violations, rates</div></div></div><div class="modal-row" style="cursor:pointer" onclick="closeModal()"><div><div class="modal-row-value">&#x1F4CB; Claims Activity Analysis</div><div class="modal-row-label" style="margin-top:3px">Submissions, approvals, rejections</div></div></div><div class="modal-row" style="cursor:pointer" onclick="closeModal()"><div><div class="modal-row-value">&#x1F4E1; IoT Device Health Report</div><div class="modal-row-label" style="margin-top:3px">Device readings, alerts, uptime</div></div></div>',
+    f:'<button class="btn btn-ghost btn-sm" onclick="closeModal()">Cancel</button>' },
+
+  'dl-feb': { ib:'rgba(26,85,152,0.12)', ic:'var(--accent-blue)', isvg:'<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>', t:'Download Started', s:'Monthly Fraud Summary &mdash; Feb 2026',
+    b:'<div class="modal-row"><div><div class="modal-row-label">File</div><div class="modal-row-mono">Monthly_Fraud_Summary_Feb2026.pdf</div></div></div><div class="modal-row"><div><div class="modal-row-label">Size</div><div class="modal-row-value">2.4 MB</div></div></div>',
+    f:'<button class="btn btn-primary btn-sm" onclick="closeModal()">Done</button>' },
+
+  'dl-q1': { ib:'rgba(26,85,152,0.12)', ic:'var(--accent-blue)', isvg:'<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>', t:'Download Started', s:'Q1 Compliance Report 2026',
+    b:'<div class="modal-row"><div><div class="modal-row-label">File</div><div class="modal-row-mono">Q1_Compliance_Report_2026.xlsx</div></div></div><div class="modal-row"><div><div class="modal-row-label">Size</div><div class="modal-row-value">1.1 MB</div></div></div>',
+    f:'<button class="btn btn-primary btn-sm" onclick="closeModal()">Done</button>' },
+
+  'dl-safety': { ib:'rgba(26,85,152,0.12)', ic:'var(--accent-blue)', isvg:'<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>', t:'Download Started', s:'Hospital Safety Audit &mdash; Jan 2026',
+    b:'<div class="modal-row"><div><div class="modal-row-label">File</div><div class="modal-row-mono">Hospital_Safety_Audit_Jan2026.pdf</div></div></div><div class="modal-row"><div><div class="modal-row-label">Size</div><div class="modal-row-value">3.8 MB</div></div></div>',
+    f:'<button class="btn btn-primary btn-sm" onclick="closeModal()">Done</button>' },
+
+  'edit-sched': { ib:'rgba(184,124,8,0.1)', ic:'var(--accent-gold)', isvg:'<circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>', t:'Edit Report Schedule', s:'IoT Device Health Report',
+    b:'<div class="modal-row"><div><div class="modal-row-label">Current</div><div class="modal-row-value">Mar 10, 2026 &mdash; Auto-generate</div></div></div><div class="modal-row"><div><div class="modal-row-label">Frequency</div><div class="modal-row-value">Monthly (1st of each month)</div></div></div><div class="modal-row"><div><div class="modal-row-label">Format</div><div class="modal-row-value">PDF &mdash; Auto-email to admin</div></div></div>',
+    f:'<button class="btn btn-ghost btn-sm" onclick="closeModal()">Cancel</button><button class="btn btn-primary btn-sm" onclick="closeModal()">Save Changes</button>' },
+
+  'full-analysis': { ib:'rgba(184,124,8,0.1)', ic:'var(--accent-gold)', isvg:'<circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/>', t:'Full AI Analysis', s:'Last 24 Hours &mdash; March 12, 2026',
+    b:'<div class="modal-row"><div><div class="modal-row-label">Model Accuracy</div><div class="modal-row-value" style="color:var(--accent-green);font-weight:700">94.2% &mdash; Above baseline</div></div></div><div class="modal-row"><div><div class="modal-row-label">Anomalies Detected</div><div class="modal-row-value" style="color:var(--accent-red);font-weight:700">23 in last 24 hours</div></div></div><div class="modal-row"><div><div class="modal-row-label">Top Finding</div><div class="modal-row-value">Billing anomaly Metro General &mdash; 91% confidence</div></div></div><div class="modal-row"><div><div class="modal-row-label">Predicted Spike</div><div class="modal-row-value" style="color:var(--accent-yellow)">+34% fraud in next 48h (78% confidence)</div></div></div>',
+    f:'<button class="btn btn-ghost btn-sm" onclick="closeModal()">Close</button><button class="btn btn-primary btn-sm" onclick="closeModal()">Export PDF</button>' },
+
+  'add-patient': { ib:'rgba(26,85,152,0.12)', ic:'var(--accent-blue)', isvg:'<path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>', t:'New Patient Registration', s:'Have all details ready',
+    b:'<div class="modal-row"><div><div class="modal-row-label">Gov\'t ID</div><div class="modal-row-value">PhilSys / SSS / GSIS number</div></div></div><div class="modal-row"><div><div class="modal-row-label">Insurance</div><div class="modal-row-value">PhilHealth / HMO card &amp; policy number</div></div></div><div class="modal-row"><div><div class="modal-row-label">Admission</div><div class="modal-row-value">Physician, ward, diagnosis</div></div></div><div class="modal-row"><div><div class="modal-row-label">Emergency Contact</div><div class="modal-row-value">Name, relationship, phone</div></div></div>',
+    f:'<button class="btn btn-ghost btn-sm" onclick="closeModal()">Cancel</button><button class="btn btn-primary btn-sm" onclick="closeModal()">Open Registration Form</button>' },
+
+  'view-10042': { ib:'rgba(200,53,88,0.1)', ic:'var(--accent-red)', isvg:'<path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>', t:'Patient Record', s:'PT-10042 &mdash; Juan dela Cruz',
+    b:'<div class="modal-row"><div><div class="modal-row-label">Status</div></div><span class="badge badge-high">Flagged</span></div><div class="modal-row"><div><div class="modal-row-label">DOB</div><div class="modal-row-value">August 14, 1980 &mdash; 45 yrs</div></div></div><div class="modal-row"><div><div class="modal-row-label">Hospital</div><div class="modal-row-value">Metro General &mdash; Admitted Mar 5</div></div></div><div class="modal-row"><div><div class="modal-row-label">Diagnosis</div><div class="modal-row-value">Acute Coronary Syndrome</div></div></div><div class="modal-row"><div><div class="modal-row-label">Flag Reason</div><div class="modal-row-value" style="color:var(--accent-red)">Duplicate claim CLM-88219 under review</div></div></div>',
+    f:'<button class="btn btn-ghost btn-sm" onclick="closeModal()">Close</button><button class="btn btn-danger btn-sm" onclick="openModal(\'inv-88219\')">View Fraud Case</button>' },
+
+  'view-20891': { ib:'rgba(8,122,82,0.1)', ic:'var(--accent-green)', isvg:'<path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>', t:'Patient Record', s:'PT-20891 &mdash; Maria Santos',
+    b:'<div class="modal-row"><div><div class="modal-row-label">Status</div></div><span class="badge badge-normal">Active</span></div><div class="modal-row"><div><div class="modal-row-label">DOB</div><div class="modal-row-value">March 22, 1992 &mdash; 33 yrs</div></div></div><div class="modal-row"><div><div class="modal-row-label">Hospital</div><div class="modal-row-value">City Medical &mdash; Admitted Mar 7</div></div></div><div class="modal-row"><div><div class="modal-row-label">Diagnosis</div><div class="modal-row-value">Community-Acquired Pneumonia</div></div></div>',
+    f:'<button class="btn btn-ghost btn-sm" onclick="closeModal()">Close</button><button class="btn btn-primary btn-sm" onclick="closeModal()">Edit Record</button>' },
+
+  'view-33810': { ib:'rgba(8,122,82,0.1)', ic:'var(--accent-green)', isvg:'<path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>', t:'Patient Record', s:"PT-33810 \u2014 Roberto Reyes",
+    b:'<div class="modal-row"><div><div class="modal-row-label">Status</div></div><span class="badge badge-normal">Active</span></div><div class="modal-row"><div><div class="modal-row-label">DOB</div><div class="modal-row-value">November 5, 1975 &mdash; 50 yrs</div></div></div><div class="modal-row"><div><div class="modal-row-label">Hospital</div><div class="modal-row-value">St. Luke\'s &mdash; Admitted Mar 6</div></div></div><div class="modal-row"><div><div class="modal-row-label">Diagnosis</div><div class="modal-row-value">Type 2 Diabetes &mdash; Glycemic Control</div></div></div>',
+    f:'<button class="btn btn-ghost btn-sm" onclick="closeModal()">Close</button><button class="btn btn-primary btn-sm" onclick="closeModal()">Edit Record</button>' },
+
+  'view-44120': { ib:'rgba(26,85,152,0.12)', ic:'var(--accent-blue)', isvg:'<path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>', t:'Patient Record', s:'PT-44120 &mdash; Ana Bautista',
+    b:'<div class="modal-row"><div><div class="modal-row-label">Status</div></div><span class="badge badge-done">Discharged</span></div><div class="modal-row"><div><div class="modal-row-label">DOB</div><div class="modal-row-value">July 19, 1988 &mdash; 37 yrs</div></div></div><div class="modal-row"><div><div class="modal-row-label">Hospital</div><div class="modal-row-value">National Health &mdash; Discharged Mar 4</div></div></div><div class="modal-row"><div><div class="modal-row-label">Diagnosis</div><div class="modal-row-value">Post-surgical recovery &mdash; appendectomy</div></div></div>',
+    f:'<button class="btn btn-ghost btn-sm" onclick="closeModal()">Close</button><button class="btn btn-primary btn-sm" onclick="closeModal()">View Billing Summary</button>' },
+
+  'view-55200': { ib:'rgba(8,122,82,0.1)', ic:'var(--accent-green)', isvg:'<path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>', t:'Patient Record', s:'PT-55200 &mdash; Carlos Mendoza',
+    b:'<div class="modal-row"><div><div class="modal-row-label">Status</div></div><span class="badge badge-normal">Active</span></div><div class="modal-row"><div><div class="modal-row-label">DOB</div><div class="modal-row-value">February 28, 1965 &mdash; 61 yrs</div></div></div><div class="modal-row"><div><div class="modal-row-label">Hospital</div><div class="modal-row-value">Riverside Medical &mdash; Admitted Mar 8</div></div></div><div class="modal-row"><div><div class="modal-row-label">Diagnosis</div><div class="modal-row-value">Hypertensive Emergency</div></div></div>',
+    f:'<button class="btn btn-ghost btn-sm" onclick="closeModal()">Close</button><button class="btn btn-primary btn-sm" onclick="closeModal()">Edit Record</button>' },
+
+  'merge-66033': { ib:'rgba(200,53,88,0.1)', ic:'var(--accent-red)', isvg:'<path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>', t:'Merge Request', s:'PT-66033 &mdash; Liza Ramos',
+    b:'<div class="modal-row"><div><div class="modal-row-label">Possible Duplicate</div><div class="modal-row-mono">PT-66033 &harr; PT-66011</div></div></div><div class="modal-row"><div><div class="modal-row-label">Confidence</div><div class="modal-row-value">89% &mdash; Same name, different DOB</div></div></div><div class="modal-row"><div><div class="modal-row-label">Status</div><div class="modal-row-value" style="color:var(--accent-yellow)">Pending supervisor review</div></div></div>',
+    f:'<button class="btn btn-ghost btn-sm" onclick="closeModal()">Cancel</button><button class="btn btn-danger btn-sm" onclick="closeModal()">Confirm Submission</button>' },
+
+  'edit-name': { ib:'rgba(26,85,152,0.12)', ic:'var(--accent-blue)', isvg:'<path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>', t:'Edit Administrator Name', s:'Account Settings',
+    b:'<div class="modal-row"><div><div class="modal-row-label">Current Name</div><div class="modal-row-value">Admin Director</div></div></div><div class="modal-row"><div><div class="modal-row-label">Verification</div><div class="modal-row-value">Password confirmation required</div></div></div>',
+    f:'<button class="btn btn-ghost btn-sm" onclick="closeModal()">Cancel</button><button class="btn btn-primary btn-sm" onclick="closeModal()">Save Changes</button>' },
+
+  'edit-email': { ib:'rgba(26,85,152,0.12)', ic:'var(--accent-blue)', isvg:'<path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/>', t:'Edit Email Address', s:'Account Settings',
+    b:'<div class="modal-row"><div><div class="modal-row-label">Current Email</div><div class="modal-row-mono">admin@traceai.health</div></div></div><div class="modal-row"><div><div class="modal-row-label">Process</div><div class="modal-row-value">Verification link sent to new address</div></div></div><div class="modal-row"><div><div class="modal-row-label">Security</div><div class="modal-row-value">2FA confirmation required</div></div></div>',
+    f:'<button class="btn btn-ghost btn-sm" onclick="closeModal()">Cancel</button><button class="btn btn-primary btn-sm" onclick="closeModal()">Send Verification</button>' },
+
+  'change-timeout': { ib:'rgba(26,85,152,0.12)', ic:'var(--accent-blue)', isvg:'<circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>', t:'Session Timeout Updated', s:'Security Settings',
+    b:'<div class="modal-status-bar" style="background:rgba(8,122,82,0.08);border:1px solid rgba(8,122,82,0.2)"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--accent-green)" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg><span style="font-size:12px;font-weight:600;color:var(--accent-green)">Saved</span></div><div class="modal-row"><div><div class="modal-row-label">Timeout</div><div class="modal-row-value">30 minutes inactivity</div></div></div><div class="modal-row"><div><div class="modal-row-label">Effective</div><div class="modal-row-value">Takes effect on next login</div></div></div>',
+    f:'<button class="btn btn-primary btn-sm" onclick="closeModal()">Done</button>' },
+
+  'manage-ip': { ib:'rgba(26,85,152,0.12)', ic:'var(--accent-blue)', isvg:'<rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>', t:'IP Whitelist', s:'4 IPs Configured',
+    b:'<div class="modal-row"><div><div class="modal-row-label">IP 1</div><div class="modal-row-mono">192.168.1.4 &mdash; Admin Workstation</div></div><span class="badge badge-normal">Active</span></div><div class="modal-row"><div><div class="modal-row-label">IP 2</div><div class="modal-row-mono">192.168.1.5 &mdash; Secondary Admin</div></div><span class="badge badge-normal">Active</span></div><div class="modal-row"><div><div class="modal-row-label">IP 3</div><div class="modal-row-mono">10.0.0.12 &mdash; Server Room</div></div><span class="badge badge-normal">Active</span></div><div class="modal-row"><div><div class="modal-row-label">IP 4</div><div class="modal-row-mono">10.0.0.15 &mdash; IT Department</div></div><span class="badge badge-normal">Active</span></div>',
+    f:'<button class="btn btn-ghost btn-sm" onclick="closeModal()">Close</button><button class="btn btn-primary btn-sm" onclick="closeModal()">+ Add IP</button>' },
+
+  'update-pw': { ib:'rgba(200,53,88,0.1)', ic:'var(--accent-red)', isvg:'<rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>', t:'Password Update', s:'2FA Verification Required',
+    b:'<div class="modal-status-bar" style="background:rgba(184,124,8,0.08);border:1px solid rgba(184,124,8,0.25)"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--accent-gold)" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/></svg><span style="font-size:12px;font-weight:600;color:var(--accent-gold)">2FA code sent to authenticator</span></div><div class="modal-row"><div><div class="modal-row-label">Last Changed</div><div class="modal-row-value">Feb 15, 2026 (26 days ago)</div></div></div><div class="modal-row"><div><div class="modal-row-label">Requirements</div><div class="modal-row-value">12+ chars, uppercase, number, symbol</div></div></div>',
+    f:'<button class="btn btn-ghost btn-sm" onclick="closeModal()">Cancel</button><button class="btn btn-danger btn-sm" onclick="closeModal()">Continue</button>' },
+
+  'export-logs': { ib:'rgba(26,85,152,0.12)', ic:'var(--accent-blue)', isvg:'<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>', t:'Audit Logs Exported', s:'March 12, 2026',
+    b:'<div class="modal-status-bar" style="background:rgba(8,122,82,0.08);border:1px solid rgba(8,122,82,0.2)"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--accent-green)" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg><span style="font-size:12px;font-weight:600;color:var(--accent-green)">Export complete</span></div><div class="modal-row"><div><div class="modal-row-label">File</div><div class="modal-row-mono">audit_log_2026-03-12.csv</div></div></div><div class="modal-row"><div><div class="modal-row-label">Entries</div><div class="modal-row-value">3,841 log entries</div></div></div>',
+    f:'<button class="btn btn-primary btn-sm" onclick="closeModal()">Done</button>' },
+
+  'logout': { ib:'rgba(200,53,88,0.1)', ic:'var(--accent-red)', isvg:'<path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/>', t:'Sign Out', s:'Admin Director',
+    b:'<div class="modal-row"><div><div class="modal-row-label">Session</div><div class="modal-row-value">Active since 08:55 AM &mdash; 1h 47min</div></div></div><div class="modal-row"><div><div class="modal-row-label">Open Investigations</div><div class="modal-row-value" style="color:var(--accent-orange)">3 cases remain in queue</div></div></div><div class="modal-row"><div><div class="modal-row-label">Unsaved Changes</div><div class="modal-row-value" style="color:var(--accent-green)">None</div></div></div>',
+    f:'<button class="btn btn-ghost btn-sm" onclick="closeModal()">Stay Logged In</button><button class="btn btn-danger btn-sm" onclick="closeModal()">Sign Out</button>' }
+};
+
+function openModal(key) {
+  var m = MODALS[key]; if (!m) return;
+  closeNotifPanel(); closeProfilePopup(); closeSearchResults();
+  document.getElementById('modalIconSvg').innerHTML = m.isvg;
+  document.getElementById('modalIconWrap').style.background = m.ib;
+  document.getElementById('modalIconSvg').style.stroke = m.ic;
+  document.getElementById('modalTitle').innerHTML = m.t;
+  document.getElementById('modalSubtitle').innerHTML = m.s || '';
+  document.getElementById('modalBody').innerHTML = m.b;
+  document.getElementById('modalFooter').innerHTML = m.f || '';
+  document.getElementById('modalBackdrop').classList.add('open');
+}
+function closeModal() { document.getElementById('modalBackdrop').classList.remove('open'); }
+
+// ── NOTIFICATIONS ──
+function toggleNotifPanel() {
+  closeProfilePopup(); closeSearchResults();
+  document.getElementById('notifPanel').classList.toggle('open');
+}
+function closeNotifPanel() { document.getElementById('notifPanel').classList.remove('open'); }
+function markAllRead() {
+  document.querySelectorAll('.notif-unread-dot').forEach(function(d){ d.className='notif-read-dot'; });
+  document.querySelectorAll('.notif-item.unread').forEach(function(i){ i.classList.remove('unread'); });
+  document.getElementById('notifBadge').textContent = '0';
+  var dot = document.getElementById('notifDot'); if(dot) dot.style.display='none';
+  openModal('mark-read');
+}
+
+// ── PROFILE POPUP ──
+function toggleProfilePopup() {
+  closeNotifPanel(); closeSearchResults();
+  var p = document.getElementById('profilePopup');
+  if (p.classList.contains('open')) { p.classList.remove('open'); return; }
+  var card = document.getElementById('userCardBtn');
+  var r = card.getBoundingClientRect();
+  p.style.left = (r.left + 4) + 'px';
+  p.style.top = '0px'; // temp
+  p.classList.add('open');
+  requestAnimationFrame(function(){
+    p.style.top = Math.max(8, r.top - p.offsetHeight - 8) + 'px';
+  });
+}
+function closeProfilePopup() { document.getElementById('profilePopup').classList.remove('open'); }
+
+// ── SEARCH ──
+var SDATA = [
+  {ty:'Patient',ic:'<path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>',bg:'rgba(26,85,152,0.1)',sc:'var(--accent-blue)',ti:'Juan dela Cruz',su:'PT-10042 · Metro General · Flagged',ac:"openModal('view-10042')"},
+  {ty:'Patient',ic:'<path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>',bg:'rgba(26,85,152,0.1)',sc:'var(--accent-blue)',ti:'Maria Santos',su:'PT-20891 · City Medical · Active',ac:"openModal('view-20891')"},
+  {ty:'Patient',ic:'<path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>',bg:'rgba(26,85,152,0.1)',sc:'var(--accent-blue)',ti:'Roberto Reyes',su:"PT-33810 · St. Luke's · Active",ac:"openModal('view-33810')"},
+  {ty:'Patient',ic:'<path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>',bg:'rgba(26,85,152,0.1)',sc:'var(--accent-blue)',ti:'Ana Bautista',su:'PT-44120 · National Health · Discharged',ac:"openModal('view-44120')"},
+  {ty:'Patient',ic:'<path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>',bg:'rgba(26,85,152,0.1)',sc:'var(--accent-blue)',ti:'Carlos Mendoza',su:'PT-55200 · Riverside · Active',ac:"openModal('view-55200')"},
+  {ty:'Patient',ic:'<path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>',bg:'rgba(26,85,152,0.1)',sc:'var(--accent-blue)',ti:'Liza Ramos',su:'PT-66033 · Metro General · Duplicate',ac:"openModal('merge-66033')"},
+  {ty:'Claim',ic:'<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/>',bg:'rgba(200,53,88,0.1)',sc:'var(--accent-red)',ti:'CLM-88219',su:'Metro General · High Risk · Duplicate',ac:"openModal('inv-88219')"},
+  {ty:'Claim',ic:'<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/>',bg:'rgba(200,53,88,0.1)',sc:'var(--accent-red)',ti:'CLM-88105',su:'City Medical · High Risk · Upcoding',ac:"openModal('inv-88105')"},
+  {ty:'Claim',ic:'<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/>',bg:'rgba(160,126,10,0.1)',sc:'var(--accent-yellow)',ti:'CLM-87932',su:"St. Luke's · Suspicious",ac:"openModal('rev-87932')"},
+  {ty:'Claim',ic:'<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/>',bg:'rgba(160,126,10,0.1)',sc:'var(--accent-yellow)',ti:'CLM-87811',su:'National Health · Suspicious',ac:"openModal('rev-87811')"},
+  {ty:'Doctor',ic:'<circle cx="12" cy="8" r="4"/><path d="M20 21a8 8 0 1 0-16 0"/>',bg:'rgba(200,53,88,0.1)',sc:'var(--accent-red)',ti:'Dr. R. Santos',su:'Abnormal Opioid Prescriptions · High Risk',ac:"openModal('inv-santos')"},
+  {ty:'Report',ic:'<line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/>',bg:'rgba(184,124,8,0.1)',sc:'var(--accent-gold)',ti:'Monthly Fraud Summary — Feb 2026',su:'PDF · 2.4 MB · Ready',ac:"openModal('dl-feb')"},
+  {ty:'Report',ic:'<line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/>',bg:'rgba(184,124,8,0.1)',sc:'var(--accent-gold)',ti:'Q1 Compliance Report 2026',su:'XLSX · 1.1 MB · Ready',ac:"openModal('dl-q1')"}
+];
+var srEl = document.getElementById('searchResults');
+var sbEl = document.querySelector('.search-bar');
+var siEl = sbEl ? sbEl.querySelector('input') : null;
+function positionSR() {
+  if (!sbEl||!srEl) return;
+  var r = sbEl.getBoundingClientRect();
+  srEl.style.left = r.left+'px';
+  srEl.style.top = (r.bottom+6)+'px';
+  srEl.style.width = Math.max(r.width,300)+'px';
+}
+function closeSearchResults() { if(srEl) srEl.classList.remove('open'); if(siEl) siEl.value=''; }
+function escHtml(s){ return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+if (siEl) {
+  siEl.addEventListener('input', function(){
+    var q = this.value.trim().toLowerCase(); positionSR();
+    if (!q) { srEl.classList.remove('open'); return; }
+    var hits = SDATA.filter(function(d){ return (d.ti+d.su+d.ty).toLowerCase().includes(q); });
+    srEl.innerHTML = hits.length ? hits.slice(0,8).map(function(d){
+      return '<div class="search-result-item" onclick="'+d.ac+';closeSearchResults()">' +
+        '<div class="search-ri" style="background:'+d.bg+'"><svg viewBox="0 0 24 24" stroke="'+d.sc+'" fill="none" stroke-width="2">'+d.ic+'</svg></div>' +
+        '<div><div class="search-rlabel">'+escHtml(d.ty)+'</div><div class="search-rtitle">'+escHtml(d.ti)+'</div><div class="search-rsub">'+escHtml(d.su)+'</div></div></div>';
+    }).join('') : '<div class="search-empty">No results for &ldquo;'+escHtml(q)+'&rdquo;</div>';
+    srEl.classList.add('open');
+  });
+  siEl.addEventListener('focus', positionSR);
+}
+// Close all panels on outside click / ESC
+document.addEventListener('click', function(e){
+  if (document.getElementById('notifPanel') && !document.getElementById('notifPanel').contains(e.target) && !document.getElementById('notifBtn').contains(e.target)) closeNotifPanel();
+  if (document.getElementById('profilePopup') && !document.getElementById('profilePopup').contains(e.target) && !document.getElementById('userCardBtn').contains(e.target)) closeProfilePopup();
+  if (srEl && !srEl.contains(e.target) && sbEl && !sbEl.contains(e.target)) srEl.classList.remove('open');
+});
+document.addEventListener('keydown', function(e){ if(e.key==='Escape'){closeModal();closeNotifPanel();closeProfilePopup();closeSearchResults();}});
+
+// ── THEME ──
+function toggleTheme() {
+  var h = document.documentElement;
+  var dark = h.getAttribute('data-theme') === 'dark';
+  h.setAttribute('data-theme', dark ? 'light' : 'dark');
+  try { localStorage.setItem('traceai-theme', dark ? 'light' : 'dark'); } catch(e) {}
+  // Destroy and redraw charts
+  Object.keys(chartInst).forEach(function(k) {
+    try { chartInst[k].destroy(); } catch(e) {}
+    delete chartInst[k];
+  });
+  var active = document.querySelector('.page.active');
+  if (active) {
+    var id = active.id.replace('page-', '');
+    setTimeout(function() { renderCharts(id); }, 60);
+  }
+}
+(function() {
+  try {
+    var s = localStorage.getItem('traceai-theme');
+    if (s) document.documentElement.setAttribute('data-theme', s);
+  } catch(e) {}
+})();
+
+// ── SIDEBAR ──
+function toggleSidebar() {
+  document.getElementById('sidebar').classList.toggle('open');
+  document.getElementById('overlay').classList.toggle('show');
+}
+function closeSidebar() {
+  document.getElementById('sidebar').classList.remove('open');
+  document.getElementById('overlay').classList.remove('show');
+}
+
+// ── NAV ──
+var PAGE_TITLES = {
+  overview: 'Overview Dashboard <span>/ Main</span>',
+  fraud: 'Fraud Detection <span>/ Flagged Cases</span>',
+  health: 'Health Monitoring <span>/ Safety Compliance</span>',
+  alerts: 'Alert &amp; Notification Center <span>/ Real-Time</span>',
+  reports: 'Reports <span>/ Analytics</span>',
+  insights: 'AI Insights <span>/ Predictions</span>',
+  patients: 'Patient Records <span>/ Directory</span>',
+  settings: 'Settings <span>/ Configuration</span>',
+  audit: 'Audit Logs <span>/ Activity Trail</span>'
+};
+function showPage(id, el) {
+  document.querySelectorAll('.page').forEach(function(p) { p.classList.remove('active'); });
+  document.querySelectorAll('.nav-item').forEach(function(n) { n.classList.remove('active'); });
+  document.getElementById('page-' + id).classList.add('active');
+  if (el) el.classList.add('active');
+  document.getElementById('page-title').innerHTML = PAGE_TITLES[id] || id;
+  window.scrollTo(0, 0);
+  closeSidebar();
+  setTimeout(function() { renderCharts(id); }, 80);
+}
+
+// ── CHIPS ──
+document.querySelectorAll('.chip').forEach(function(c) {
+  c.addEventListener('click', function() {
+    var parent = this.closest('.chips');
+    if (parent) parent.querySelectorAll('.chip').forEach(function(x) { x.classList.remove('active'); });
+    this.classList.add('active');
+  });
+});
+
+// ── CHARTS ──
+var chartInst = {};
+
+function getColors() {
+  var dark = document.documentElement.getAttribute('data-theme') === 'dark';
+  return {
+    grid: dark ? 'rgba(32,120,220,0.1)' : 'rgba(30,80,150,0.12)',
+    tick: dark ? '#7bafd4' : '#1e3a5a',
+    leg:  dark ? '#7bafd4' : '#1e3a5a',
+    ttBg: dark ? '#0a1d38' : '#f8fafd',
+    ttTitle: dark ? '#e8f4ff' : '#0d1c32',
+    ttBody:  dark ? '#7bafd4' : '#1e3a5a',
+    ttBorder: dark ? 'rgba(32,120,220,0.3)' : 'rgba(30,80,150,0.25)'
+  };
+}
+
+function makeBase() {
+  var c = getColors();
+  return {
+    responsive: true,
+    maintainAspectRatio: true,
+    plugins: {
+      legend: { display: false },
+      tooltip: {
+        backgroundColor: c.ttBg,
+        borderColor: c.ttBorder,
+        borderWidth: 1,
+        titleColor: c.ttTitle,
+        bodyColor: c.ttBody,
+        padding: 10,
+        cornerRadius: 8,
+        boxPadding: 4,
+        titleFont: { size: 11, weight: '600' },
+        bodyFont: { size: 10 }
+      }
+    },
+    scales: {
+      x: { grid: { color: c.grid }, ticks: { color: c.tick, font: { size: 10, family: 'JetBrains Mono', weight: '600' }, maxRotation: 0 } },
+      y: { grid: { color: c.grid }, ticks: { color: c.tick, font: { size: 10, family: 'JetBrains Mono', weight: '600' } } }
+    }
+  };
+}
+
+function makeLegend() {
+  var c = getColors();
+  return { display: true, labels: { color: c.leg, font: { size: 10, weight: '700' }, boxWidth: 10, padding: 8 } };
+}
+
+function makeDnut(el, labels, vals, colors) {
+  var c = getColors();
+  return new Chart(el, {
+    type: 'doughnut',
+    data: {
+      labels: labels,
+      datasets: [{ data: vals, backgroundColor: colors, borderWidth: 2, borderColor: c.ttBg, hoverOffset: 8 }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: true, cutout: '64%',
+      plugins: {
+        legend: { display: true, position: 'bottom', labels: { color: c.leg, font: { size: 9 }, boxWidth: 8, padding: 5 } },
+        tooltip: makeBase().plugins.tooltip
+      }
+    }
+  });
+}
+
+var d30 = (function() {
+  var arr = [];
+  for (var i = 0; i < 30; i++) {
+    var d = new Date(); d.setDate(d.getDate() - 29 + i);
+    arr.push(d.toLocaleDateString('en', { month: 'short', day: 'numeric' }));
+  }
+  return arr;
+})();
+
+var d14 = (function() {
+  var arr = [];
+  for (var i = 0; i < 14; i++) {
+    var d = new Date(); d.setDate(d.getDate() - 13 + i);
+    arr.push(d.toLocaleDateString('en', { month: 'short', day: 'numeric' }));
+  }
+  return arr;
+})();
+
+function renderCharts(id) {
+  var base = makeBase();
+  var leg = makeLegend();
+
+  if (id === 'overview') {
+    var el = document.getElementById('fraudTrend');
+    if (el) chartInst.fraudTrend = new Chart(el, { type: 'line', data: { labels: d30, datasets: [
+      { label: 'High Risk', data: [2,3,2,4,5,3,4,6,5,7,4,3,5,6,8,7,9,6,7,8,9,7,8,10,9,8,9,7,8,7], borderColor: '#c83558', backgroundColor: 'rgba(200,53,88,0.07)', fill: true, tension: 0.4, pointRadius: 0, borderWidth: 2 },
+      { label: 'Suspicious', data: [8,9,10,8,12,11,9,13,11,14,12,10,13,14,16,15,17,14,15,16,17,15,16,18,17,16,17,15,16,18], borderColor: '#a07e0a', backgroundColor: 'rgba(160,126,10,0.05)', fill: true, tension: 0.4, pointRadius: 0, borderWidth: 1.5 },
+      { label: 'Total', data: [12,14,15,14,18,16,15,21,18,23,18,15,20,22,26,24,28,22,24,26,28,24,26,30,28,26,28,24,26,27], borderColor: '#1a5598', backgroundColor: 'rgba(26,85,152,0.05)', fill: true, tension: 0.4, pointRadius: 0, borderWidth: 1.5 }
+    ] }, options: Object.assign({}, base, { plugins: Object.assign({}, base.plugins, { legend: leg }) }) });
+
+    var el2 = document.getElementById('fraudPie');
+    if (el2) chartInst.fraudPie = makeDnut(el2, ['Duplicate','Upcoding','Phantom','Kickback','Identity','Rx Fraud'], [28,22,18,12,11,9], ['#c83558','#c8601e','#a07e0a','#1a5598','#b87c08','#087a52']);
+
+    var el3 = document.getElementById('claimsBar');
+    if (el3) chartInst.claimsBar = new Chart(el3, { type: 'bar', data: { labels: ['Metro','City','St.L','NHI','River','Summit','East'], datasets: [
+      { label: 'Approved', data: [1240,980,760,1100,420,310,580], backgroundColor: 'rgba(26,85,152,0.7)', borderRadius: 5 },
+      { label: 'Flagged',  data: [180,120,60,140,30,20,50],       backgroundColor: 'rgba(200,53,88,0.7)',  borderRadius: 5 }
+    ] }, options: Object.assign({}, base, { plugins: Object.assign({}, base.plugins, { legend: leg }) }) });
+
+    var el4 = document.getElementById('safetyLine');
+    if (el4) chartInst.safetyLine = new Chart(el4, { type: 'line', data: { labels: d14, datasets: [
+      { label: 'Passed',     data: [980,1020,1100,1080,1150,1130,1200,1180,1220,1250,1210,1230,1200,1204], borderColor: '#087a52', backgroundColor: 'rgba(8,122,82,0.07)', fill: true, tension: 0.4, pointRadius: 2, borderWidth: 2, pointBackgroundColor: '#087a52' },
+      { label: 'Violations', data: [22,18,25,20,15,18,12,16,14,10,13,11,15,12],                           borderColor: '#a07e0a', backgroundColor: 'rgba(160,126,10,0.05)', fill: true, tension: 0.4, pointRadius: 2, borderWidth: 1.5 }
+    ] }, options: Object.assign({}, base, { plugins: Object.assign({}, base.plugins, { legend: leg }) }) });
+  }
+
+  if (id === 'fraud') {
+    var el = document.getElementById('fraudArea');
+    if (el) chartInst.fraudArea = new Chart(el, { type: 'line', data: { labels: d30, datasets: [
+      { label: 'AI Detected', data: [5,7,6,9,8,11,10,13,12,14,11,10,12,14,16,15,18,14,15,17,18,16,17,19,18,17,18,16,17,18], borderColor: '#b87c08', backgroundColor: 'rgba(184,124,8,0.07)', fill: true, tension: 0.4, pointRadius: 0, borderWidth: 2 },
+      { label: 'Manual',      data: [2,2,3,2,3,3,2,4,3,5,3,3,4,4,5,5,6,5,5,6,6,5,5,7,6,6,6,5,6,7],             borderColor: '#1a5598', backgroundColor: 'rgba(26,85,152,0.05)', fill: true, tension: 0.4, pointRadius: 0, borderWidth: 1.5 }
+    ] }, options: Object.assign({}, base, { plugins: Object.assign({}, base.plugins, { legend: leg }) }) });
+  }
+
+  if (id === 'health') {
+    var el = document.getElementById('incidentBar');
+    if (el) chartInst.incidentBar = new Chart(el, { type: 'bar', data: { labels: ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'], datasets: [
+      { label: 'Critical', data: [3,2,4,1,3,2,3], backgroundColor: 'rgba(200,53,88,0.75)',  borderRadius: 5 },
+      { label: 'Warning',  data: [5,7,4,8,6,4,5], backgroundColor: 'rgba(160,126,10,0.75)', borderRadius: 5 },
+      { label: 'Info',     data: [8,10,7,12,9,6,8], backgroundColor: 'rgba(26,85,152,0.45)', borderRadius: 5 }
+    ] }, options: Object.assign({}, base, { plugins: Object.assign({}, base.plugins, { legend: leg }) }) });
+
+    var el2 = document.getElementById('monitorBar');
+    if (el2) chartInst.monitorBar = new Chart(el2, { type: 'bar', data: { labels: ['Metro','City Medical','St. Lukes','National','Riverside','Summit'], datasets: [
+      { label: 'Checks',     data: [342,280,198,310,120,88], backgroundColor: 'rgba(8,122,82,0.65)',  borderRadius: 5 },
+      { label: 'Violations', data: [14,9,6,12,3,2],          backgroundColor: 'rgba(200,53,88,0.6)', borderRadius: 5 }
+    ] }, options: Object.assign({}, base, { plugins: Object.assign({}, base.plugins, { legend: leg }) }) });
+  }
+
+  if (id === 'alerts') {
+    var el = document.getElementById('alertPie');
+    if (el) chartInst.alertPie = makeDnut(el, ['Fraud','Prescription','Safety','Patient','Billing'], [35,25,18,12,10], ['#c83558','#c8601e','#a07e0a','#1a5598','#087a52']);
+
+    var el2 = document.getElementById('alertLine');
+    if (el2) chartInst.alertLine = new Chart(el2, { type: 'line', data: { labels: ['12AM','2AM','4AM','6AM','8AM','10AM','12PM','Now'], datasets: [
+      { label: 'Alerts', data: [2,1,3,4,8,14,11,12], borderColor: '#c83558', backgroundColor: 'rgba(200,53,88,0.08)', fill: true, tension: 0.4, pointRadius: 3, borderWidth: 2, pointBackgroundColor: '#c83558' }
+    ] }, options: base });
+  }
+
+  if (id === 'reports') {
+    var el = document.getElementById('reportsBar');
+    if (el) chartInst.reportsBar = new Chart(el, { type: 'bar', data: { labels: ['Oct','Nov','Dec','Jan','Feb','Mar'], datasets: [
+      { label: 'Generated', data: [98,112,134,121,143,148], backgroundColor: 'rgba(26,85,152,0.7)',  borderRadius: 5 },
+      { label: 'Scheduled', data: [20,24,28,26,30,32],      backgroundColor: 'rgba(184,124,8,0.65)', borderRadius: 5 }
+    ] }, options: Object.assign({}, base, { plugins: Object.assign({}, base.plugins, { legend: leg }) }) });
+  }
+
+  if (id === 'insights') {
+    var el = document.getElementById('insightsLine');
+    if (el) chartInst.insightsLine = new Chart(el, { type: 'line', data: { labels: d14, datasets: [
+      { label: 'Fraud Detection', data: [88,90,87,92,91,94,93,95,92,94,96,93,95,94], borderColor: '#c83558', backgroundColor: 'rgba(200,53,88,0.07)', fill: true, tension: 0.4, pointRadius: 2, borderWidth: 2 },
+      { label: 'Health Anomaly',  data: [72,75,74,78,76,80,79,82,80,83,85,82,84,85], borderColor: '#b87c08', backgroundColor:'rgba(184,124,8,0.07)', fill: true, tension: 0.4, pointRadius: 2, borderWidth: 1.5 }
+    ] }, options: Object.assign({}, base, { plugins: Object.assign({}, base.plugins, { legend: leg }) }) });
+  }
+}
+
+// ══════════════════════════════════════════
+// DUMMY MEDICAL DATA (Backend Integration)
+// ══════════════════════════════════════════
+var DUMMY_CLAIMS = [
+  { id:'CLM-88219', patient:'Juan dela Cruz', patientId:'PT-10042', hospital:'Metro General', amount:2400, riskScore:91, riskLevel:'High Risk', status:'Under Review', type:'Duplicate Submission', date:'Mar 12, 2026' },
+  { id:'CLM-88105', patient:'Maria Santos',   patientId:'PT-20891', hospital:'City Medical',  amount:1750, riskScore:85, riskLevel:'High Risk', status:'Under Review', type:'Upcoding Detected',   date:'Mar 12, 2026' },
+  { id:'CLM-87932', patient:'Roberto Reyes',  patientId:'PT-33810', hospital:"St. Luke's",    amount:1200, riskScore:67, riskLevel:'Suspicious', status:'Flagged',      type:'Suspicious Activity', date:'Mar 11, 2026' },
+  { id:'CLM-87811', patient:'Ana Bautista',   patientId:'PT-44120', hospital:'National Health',amount:2100, riskScore:72, riskLevel:'Suspicious', status:'Flagged',      type:'Billing Mismatch',   date:'Mar 11, 2026' },
+  { id:'CLM-87780', patient:'Carlos Mendoza', patientId:'PT-55200', hospital:'Riverside Medical',amount:900, riskScore:22, riskLevel:'Normal',   status:'Cleared',      type:'Legitimate Claim',   date:'Mar 10, 2026' },
+  { id:'CLM-87654', patient:'Liza Ramos',     patientId:'PT-66033', hospital:'Metro General', amount:1600, riskScore:88, riskLevel:'High Risk', status:'Under Review', type:'Phantom Billing',    date:'Mar 10, 2026' }
+];
+
+var DUMMY_SUMMARY = {
+  totalClaims: 37,
+  highRisk: 7,
+  suspicious: 18,
+  normal: 12,
+  totalFlagged: 25,
+  totalAmount: 15840,
+  fraudSavings: 94200,
+  aiAccuracy: '94.2%',
+  period: 'March 1–19, 2026',
+  generatedBy: 'Admin Director',
+  generatedAt: new Date().toLocaleString('en-PH', { timeZone:'Asia/Manila' })
+};
+
+// ══════════════════════════════════════════
+// ══════════════════════════════════════════
+// BACKEND API — calls our Express server on Render
+// ══════════════════════════════════════════
+var API_BASE = '/api';  // always relative — works on Render and any domain
+
+async function fetchClaimsFromSupabase() {
+  try {
+    var res = await fetch(API_BASE + '/claims');
+    if (!res.ok) throw new Error('API error ' + res.status);
+    return await res.json();
+  } catch (e) {
+    console.warn('[TraceAI] API unavailable — using dummy data. Error:', e.message);
+    return null;
+  }
+}
+
+async function logExportToSupabase(reportType, recordCount) {
+  try {
+    await fetch(API_BASE + '/export-log', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        report_type: reportType,
+        record_count: recordCount,
+        exported_by: 'Admin Director'
+      })
+    });
+  } catch (e) {
+    console.warn('[TraceAI] Could not log export:', e.message);
+  }
+}
+
+// ══════════════════════════════════════════
+// EXPORT FRAUD DETECTION REPORT AS PDF
+// ══════════════════════════════════════════
+async function exportFraudPDF() {
+  var btn = document.querySelector('[onclick="exportFraudPDF()"]');
+  if (btn) { btn.disabled = true; btn.textContent = 'Generating...'; }
+
+  // Try to fetch live data from Supabase; fall back to dummy data
+  var liveData = await fetchClaimsFromSupabase();
+  var claims = liveData || DUMMY_CLAIMS;
+  var summary = DUMMY_SUMMARY;
+  summary.generatedAt = new Date().toLocaleString('en-PH', { timeZone:'Asia/Manila' });
+
+  var jspdf = window.jspdf ? window.jspdf.jsPDF : (window.jsPDF || (typeof jsPDF !== 'undefined' ? jsPDF : null));
+  if (!jspdf) {
+    alert('PDF library not loaded. Please refresh and try again.');
+    if (btn) { btn.disabled = false; btn.innerHTML = '<svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" style="margin-right:3px"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>Export PDF'; }
+    return;
+  }
+
+  var doc = new jspdf({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+  var W = doc.internal.pageSize.getWidth();
+  var pageH = doc.internal.pageSize.getHeight();
+  var margin = 18;
+
+  // ── HEADER BANNER ──
+  doc.setFillColor(15, 45, 100);
+  doc.rect(0, 0, W, 38, 'F');
+
+  // Brand title
+  doc.setTextColor(255, 255, 255);
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(20);
+  doc.text('TRACE AI', margin, 16);
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(9);
+  doc.setTextColor(160, 200, 255);
+  doc.text('Healthcare Intelligence Platform', margin, 22);
+
+  // Report title right side
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(13);
+  doc.setTextColor(255, 255, 255);
+  doc.text('FRAUD DETECTION REPORT', W - margin, 14, { align: 'right' });
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(8);
+  doc.setTextColor(160, 200, 255);
+  doc.text('Period: ' + summary.period, W - margin, 20, { align: 'right' });
+  doc.text('Generated: ' + summary.generatedAt, W - margin, 26, { align: 'right' });
+  doc.text('Prepared by: ' + summary.generatedBy, W - margin, 32, { align: 'right' });
+
+  // Status pill
+  doc.setFillColor(8, 122, 82);
+  doc.roundedRect(margin, 27, 38, 8, 2, 2, 'F');
+  doc.setTextColor(255, 255, 255);
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(8);
+  doc.text('● CONFIDENTIAL', margin + 19, 32.5, { align: 'center' });
+
+  var y = 48;
+
+  // ── SECTION: EXECUTIVE SUMMARY ──
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(10);
+  doc.setTextColor(15, 45, 100);
+  doc.text('EXECUTIVE SUMMARY', margin, y);
+  doc.setDrawColor(15, 45, 100);
+  doc.setLineWidth(0.5);
+  doc.line(margin, y + 2, W - margin, y + 2);
+  y += 8;
+
+  // KPI boxes
+  var kpiData = [
+    { label: 'Total Claims', value: summary.totalClaims.toString(), color: [15, 45, 100] },
+    { label: 'High Risk',    value: summary.highRisk.toString(),     color: [200, 53, 88] },
+    { label: 'Suspicious',   value: summary.suspicious.toString(),   color: [160, 126, 10] },
+    { label: 'Cleared',      value: summary.normal.toString(),       color: [8, 122, 82] }
+  ];
+
+  var boxW = (W - margin * 2 - 9) / 4;
+  kpiData.forEach(function(k, i) {
+    var bx = margin + i * (boxW + 3);
+    doc.setFillColor(245, 248, 255);
+    doc.setDrawColor(k.color[0], k.color[1], k.color[2]);
+    doc.setLineWidth(0.4);
+    doc.roundedRect(bx, y, boxW, 22, 2, 2, 'FD');
+    doc.setFillColor(k.color[0], k.color[1], k.color[2]);
+    doc.rect(bx, y, boxW, 2.5, 'F');
+    doc.setTextColor(k.color[0], k.color[1], k.color[2]);
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(18);
+    doc.text(k.value, bx + boxW / 2, y + 14, { align: 'center' });
+    doc.setFontSize(7);
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(80, 100, 130);
+    doc.text(k.label.toUpperCase(), bx + boxW / 2, y + 19.5, { align: 'center' });
+  });
+  y += 30;
+
+  // Additional KPIs row
+  var kpi2 = [
+    { label: 'Total Amount Flagged', value: '₱' + summary.totalAmount.toLocaleString() },
+    { label: 'Estimated Fraud Savings', value: '₱' + summary.fraudSavings.toLocaleString() },
+    { label: 'AI Detection Accuracy', value: summary.aiAccuracy },
+    { label: 'Fraud Risk Index', value: '68 / 100 — Elevated' }
+  ];
+  kpi2.forEach(function(k, i) {
+    var bx = margin + i * (boxW + 3);
+    doc.setFillColor(250, 252, 255);
+    doc.setDrawColor(200, 215, 235);
+    doc.setLineWidth(0.3);
+    doc.roundedRect(bx, y, boxW, 14, 2, 2, 'FD');
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(8);
+    doc.setTextColor(15, 45, 100);
+    doc.text(k.value, bx + boxW / 2, y + 7, { align: 'center' });
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(6.5);
+    doc.setTextColor(100, 120, 150);
+    doc.text(k.label.toUpperCase(), bx + boxW / 2, y + 12, { align: 'center' });
+  });
+  y += 22;
+
+  // ── SECTION: FRAUD TYPE BREAKDOWN ──
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(10);
+  doc.setTextColor(15, 45, 100);
+  doc.text('FRAUD CATEGORY BREAKDOWN', margin, y);
+  doc.setDrawColor(15, 45, 100);
+  doc.setLineWidth(0.5);
+  doc.line(margin, y + 2, W - margin, y + 2);
+  y += 8;
+
+  var categories = [
+    { name: 'Duplicate Claims',  count: 28, pct: 28, color: [200, 53, 88] },
+    { name: 'Upcoding',          count: 22, pct: 22, color: [200, 96, 30] },
+    { name: 'Phantom Billing',   count: 18, pct: 18, color: [160, 126, 10] },
+    { name: 'Kickback Schemes',  count: 12, pct: 12, color: [26, 85, 152] },
+    { name: 'Identity Fraud',    count: 11, pct: 11, color: [184, 124, 8] },
+    { name: 'Rx Fraud',          count: 9,  pct: 9,  color: [8, 122, 82] }
+  ];
+
+  var catColW = (W - margin * 2 - 10) / 3;
+  categories.forEach(function(cat, i) {
+    var col = i % 3;
+    var row = Math.floor(i / 3);
+    var cx = margin + col * (catColW + 5);
+    var cy = y + row * 14;
+
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(8);
+    doc.setTextColor(30, 40, 60);
+    doc.text(cat.name, cx, cy + 4);
+
+    // Bar background
+    doc.setFillColor(230, 236, 245);
+    doc.roundedRect(cx, cy + 6, catColW - 22, 4, 1, 1, 'F');
+    // Bar fill
+    doc.setFillColor(cat.color[0], cat.color[1], cat.color[2]);
+    doc.roundedRect(cx, cy + 6, (catColW - 22) * cat.pct / 100, 4, 1, 1, 'F');
+
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(7.5);
+    doc.setTextColor(cat.color[0], cat.color[1], cat.color[2]);
+    doc.text(cat.pct + '%  (' + cat.count + ')', cx + catColW - 20, cy + 9.5);
+  });
+  y += 36;
+
+  // ── SECTION: FLAGGED CLAIMS TABLE ──
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(10);
+  doc.setTextColor(15, 45, 100);
+  doc.text('FLAGGED CLAIMS DETAIL', margin, y);
+  doc.setDrawColor(15, 45, 100);
+  doc.setLineWidth(0.5);
+  doc.line(margin, y + 2, W - margin, y + 2);
+  y += 6;
+
+  var tableRows = claims.map(function(c) {
+    return [
+      c.id || c.claim_id || '',
+      c.patient || c.patient_name || '',
+      c.hospital || '',
+      '₱' + (c.amount || 0).toLocaleString(),
+      (c.riskScore || c.risk_score || 0) + '/100',
+      c.riskLevel || c.risk_level || '',
+      c.status || '',
+      c.type || c.fraud_type || ''
+    ];
+  });
+
+  doc.autoTable({
+    startY: y,
+    head: [['Claim ID', 'Patient', 'Hospital', 'Amount', 'Risk Score', 'Risk Level', 'Status', 'Fraud Type']],
+    body: tableRows,
+    margin: { left: margin, right: margin },
+    styles: { fontSize: 7.5, cellPadding: 3, lineColor: [210, 220, 235], lineWidth: 0.3, textColor: [30, 50, 80] },
+    headStyles: { fillColor: [15, 45, 100], textColor: [255, 255, 255], fontStyle: 'bold', fontSize: 7, cellPadding: 4 },
+    alternateRowStyles: { fillColor: [245, 249, 255] },
+    columnStyles: {
+      0: { fontStyle: 'bold', textColor: [26, 85, 152] },
+      4: { halign: 'center', fontStyle: 'bold' },
+      5: { halign: 'center' }
+    },
+    didParseCell: function(data) {
+      if (data.section === 'body' && data.column.index === 5) {
+        var val = data.cell.raw;
+        if (val === 'High Risk')  { data.cell.styles.textColor = [200, 53, 88];  data.cell.styles.fontStyle = 'bold'; }
+        if (val === 'Suspicious') { data.cell.styles.textColor = [160, 126, 10]; data.cell.styles.fontStyle = 'bold'; }
+        if (val === 'Normal')     { data.cell.styles.textColor = [8, 122, 82];   data.cell.styles.fontStyle = 'bold'; }
+      }
+    }
+  });
+
+  y = doc.lastAutoTable.finalY + 10;
+
+  // ── SECTION: SUSPICIOUS PRESCRIPTIONS ──
+  if (y + 50 > pageH - 30) { doc.addPage(); y = 20; }
+
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(10);
+  doc.setTextColor(15, 45, 100);
+  doc.text('SUSPICIOUS PRESCRIPTION ACTIVITY', margin, y);
+  doc.setDrawColor(15, 45, 100);
+  doc.line(margin, y + 2, W - margin, y + 2);
+  y += 6;
+
+  doc.autoTable({
+    startY: y,
+    head: [['Doctor', 'Drug', 'Count / 24h', 'Threshold', 'Status', 'Risk Assessment']],
+    body: [
+      ['Dr. R. Santos', 'Oxycodone 80mg',  '47', '≤5',  'High Risk',  'Possible Drug Diversion — DEA Flagged'],
+      ['Dr. M. Lim',    'Alprazolam 2mg',  '23', '≤8',  'Suspicious', 'Above threshold — Under monitoring'],
+      ['Dr. A. Cruz',   'Tramadol 100mg',  '31', '≤10', 'Suspicious', 'Pattern review initiated'],
+      ['Dr. J. Reyes',  'Zolpidem 10mg',   '4',  '≤6',  'Normal',     'Within safe limits']
+    ],
+    margin: { left: margin, right: margin },
+    styles: { fontSize: 7.5, cellPadding: 3, textColor: [30, 50, 80] },
+    headStyles: { fillColor: [15, 45, 100], textColor: [255, 255, 255], fontStyle: 'bold', fontSize: 7 },
+    alternateRowStyles: { fillColor: [245, 249, 255] },
+    didParseCell: function(data) {
+      if (data.section === 'body' && data.column.index === 4) {
+        var val = data.cell.raw;
+        if (val === 'High Risk')  { data.cell.styles.textColor = [200, 53, 88];  data.cell.styles.fontStyle = 'bold'; }
+        if (val === 'Suspicious') { data.cell.styles.textColor = [160, 126, 10]; data.cell.styles.fontStyle = 'bold'; }
+        if (val === 'Normal')     { data.cell.styles.textColor = [8, 122, 82];   data.cell.styles.fontStyle = 'bold'; }
+      }
+      if (data.section === 'body' && data.column.index === 2) {
+        var v = parseInt(data.cell.raw);
+        if (v > 20) data.cell.styles.textColor = [200, 53, 88];
+      }
+    }
+  });
+
+  y = doc.lastAutoTable.finalY + 10;
+
+  // ── SECTION: RECOMMENDATIONS ──
+  if (y + 55 > pageH - 30) { doc.addPage(); y = 20; }
+
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(10);
+  doc.setTextColor(15, 45, 100);
+  doc.text('AI RECOMMENDATIONS & NEXT STEPS', margin, y);
+  doc.setDrawColor(15, 45, 100);
+  doc.line(margin, y + 2, W - margin, y + 2);
+  y += 9;
+
+  var recs = [
+    { priority: 'CRITICAL', color: [200, 53, 88], bg: [255, 240, 244], text: 'Immediately escalate CLM-88219 and CLM-87654 to the fraud investigation team. Both show >88% AI risk confidence for duplicate and phantom billing respectively.' },
+    { priority: 'HIGH',     color: [200, 96, 30],  bg: [255, 246, 238], text: 'File DEA report for Dr. Santos. 47 opioid prescriptions in 24h is 9.4x the threshold. Suspend prescribing privileges pending investigation.' },
+    { priority: 'MEDIUM',   color: [160, 126, 10], bg: [255, 251, 235], text: 'Conduct billing code audit for National Health Institute. CLM-87811 shows 72% fraud confidence in upcoding. Review all claims submitted in March 2026.' },
+    { priority: 'INFO',     color: [26, 85, 152],  bg: [235, 244, 255], text: 'Merge duplicate patient records PT-10042↔PT-10098 (97% confidence). Schedule records team review for PT-22310↔PT-22318 discrepancy.' }
+  ];
+
+  recs.forEach(function(r) {
+    doc.setFillColor(r.bg[0], r.bg[1], r.bg[2]);
+    doc.setDrawColor(r.color[0], r.color[1], r.color[2]);
+    doc.setLineWidth(0.3);
+    doc.roundedRect(margin, y, W - margin * 2, 16, 2, 2, 'FD');
+    doc.setFillColor(r.color[0], r.color[1], r.color[2]);
+    doc.roundedRect(margin, y, 16, 16, 2, 2, 'F');
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(6);
+    doc.setTextColor(255, 255, 255);
+    var lines = doc.splitTextToSize(r.priority, 13);
+    doc.text(lines, margin + 8, y + 7, { align: 'center', baseline: 'middle' });
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(7.5);
+    doc.setTextColor(40, 55, 80);
+    var bodyLines = doc.splitTextToSize(r.text, W - margin * 2 - 22);
+    doc.text(bodyLines, margin + 19, y + 5);
+    y += 19;
+  });
+
+  y += 4;
+
+  // ── FOOTER on all pages ──
+  var totalPages = doc.internal.getNumberOfPages();
+  for (var pg = 1; pg <= totalPages; pg++) {
+    doc.setPage(pg);
+    doc.setFillColor(245, 248, 255);
+    doc.rect(0, pageH - 14, W, 14, 'F');
+    doc.setDrawColor(200, 215, 235);
+    doc.setLineWidth(0.3);
+    doc.line(0, pageH - 14, W, pageH - 14);
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(7);
+    doc.setTextColor(100, 120, 150);
+    doc.text('TRACE AI Healthcare Intelligence Platform — CONFIDENTIAL. For internal use only.', margin, pageH - 7);
+    doc.text('Page ' + pg + ' of ' + totalPages, W - margin, pageH - 7, { align: 'right' });
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(15, 45, 100);
+    doc.text('TraceAI', W / 2, pageH - 7, { align: 'center' });
+  }
+
+  // Save the PDF
+  var filename = 'TraceAI_Fraud_Report_' + new Date().toISOString().slice(0,10) + '.pdf';
+  doc.save(filename);
+
+  // Log export to Supabase (non-blocking)
+  logExportToSupabase('Fraud Detection Report', claims.length);
+
+  // Show success modal
+  if (btn) {
+    btn.disabled = false;
+    btn.innerHTML = '<svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" style="margin-right:3px"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>Export PDF';
+  }
+
+  // Update modal data to show PDF info and open it
+  MODALS['export-csv'].t = 'PDF Report Generated';
+  MODALS['export-csv'].s = '37 Flagged Claims — Fraud Detection Report';
+  MODALS['export-csv'].b = '<div class="modal-status-bar" style="background:rgba(8,122,82,0.08);border:1px solid rgba(8,122,82,0.2)"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--accent-green)" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg><span style="font-size:12px;font-weight:600;color:var(--accent-green)">File saved to Downloads</span></div><div class="modal-row"><div><div class="modal-row-label">File</div><div class="modal-row-mono">' + filename + '</div></div></div><div class="modal-row"><div><div class="modal-row-label">Contents</div><div class="modal-row-value">Executive Summary · Flagged Claims · Prescriptions · AI Recommendations</div></div></div><div class="modal-row"><div><div class="modal-row-label">Records Exported</div><div class="modal-row-value">6 flagged claims · ' + summary.period + '</div></div></div>';
+  openModal('export-csv');
+}
+
+// ── CHIPS ──
+document.querySelectorAll('.chip').forEach(function(c) {
+  c.addEventListener('click', function() {
+    var parent = this.closest('.chips');
+    if (parent) parent.querySelectorAll('.chip').forEach(function(x) { x.classList.remove('active'); });
+    this.classList.add('active');
+  });
+});
+
+// ── CHARTS ──
+var chartInst = {};
+renderCharts('overview');
+
+</script>
+</body>
+</html>
