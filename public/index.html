@@ -109,10 +109,10 @@ html, body {
 }
 .brand {
   padding:12px 16px; border-bottom:1px solid var(--sidebar-border);
-  display:flex; align-items:center; min-height:80px;
+  display:flex; align-items:center; min-height:100px;
   background:rgba(0,0,0,0.06);
 }
-.brand-logo { width:190px; height:64px; object-fit:contain; mix-blend-mode:normal; }
+.brand-logo { width:210px; height:88px; object-fit:contain; mix-blend-mode:normal; }
 [data-theme="light"] .brand-logo { filter:brightness(0.85) contrast(1.2); }
 [data-theme="dark"]  .brand-logo { filter:brightness(1.6) contrast(1.15) saturate(1.1); }
 .nav-section { padding:10px 10px 2px; }
@@ -956,11 +956,11 @@ canvas { display:block; }
   <div class="card">
     <div class="card-head"><div class="card-title"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>Report Library</div><button class="card-action">+ New Report</button></div>
     <div class="card-body">
-      <div class="tbl-row"><div class="tbl-main"><div class="tbl-primary">Monthly Fraud Summary — Feb 2026</div><div class="tbl-secondary">Generated Mar 1, 2026 • PDF • 2.4 MB</div></div><div class="tbl-right"><span class="badge badge-normal">Ready</span><button class="btn btn-ghost btn-sm">Download</button></div></div>
-      <div class="tbl-row"><div class="tbl-main"><div class="tbl-primary">Q1 Compliance Report 2026</div><div class="tbl-secondary">Generated Feb 28, 2026 • XLSX • 1.1 MB</div></div><div class="tbl-right"><span class="badge badge-normal">Ready</span><button class="btn btn-ghost btn-sm">Download</button></div></div>
-      <div class="tbl-row"><div class="tbl-main"><div class="tbl-primary">Hospital Safety Audit — Jan 2026</div><div class="tbl-secondary">Generated Feb 1, 2026 • PDF • 3.8 MB</div></div><div class="tbl-right"><span class="badge badge-normal">Ready</span><button class="btn btn-ghost btn-sm">Download</button></div></div>
+      <div class="tbl-row"><div class="tbl-main"><div class="tbl-primary">Monthly Fraud Summary — Feb 2026</div><div class="tbl-secondary">Generated Mar 1, 2026 • PDF • 2.4 MB</div></div><div class="tbl-right"><span class="badge badge-normal">Ready</span><button class="btn btn-ghost btn-sm" onclick="downloadReportPDF('Monthly Fraud Summary','Feb 2026','Fraud detection summary including 37 flagged claims, 7 high risk, 18 suspicious, 12 cleared. Total flagged amount: ₱9,950. AI accuracy: 94.2%.','fraud')"><svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" style="margin-right:3px"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>Download PDF</button></div></div>
+      <div class="tbl-row"><div class="tbl-main"><div class="tbl-primary">Q1 Compliance Report 2026</div><div class="tbl-secondary">Generated Feb 28, 2026 • PDF • 1.1 MB</div></div><div class="tbl-right"><span class="badge badge-normal">Ready</span><button class="btn btn-ghost btn-sm" onclick="downloadReportPDF('Q1 Compliance Report','2026','Overall compliance score: 88.4%. Infection Control: 90%, Medication Safety: 94%, Fire Safety: 74%, Staff Protocol: 97%. 3 active violations pending corrective action.','compliance')"><svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" style="margin-right:3px"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>Download PDF</button></div></div>
+      <div class="tbl-row"><div class="tbl-main"><div class="tbl-primary">Hospital Safety Audit — Jan 2026</div><div class="tbl-secondary">Generated Feb 1, 2026 • PDF • 3.8 MB</div></div><div class="tbl-right"><span class="badge badge-normal">Ready</span><button class="btn btn-ghost btn-sm" onclick="downloadReportPDF('Hospital Safety Audit','Jan 2026','Safety audit covering 6 hospitals. 42 IoT devices monitored. Critical: ICU Ward 3 pathogen surge at Metro General. Ventilation failure at City Medical OR Block B. Fire drill pass rate: 74% at National Health (below 85% threshold).','safety')"><svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" style="margin-right:3px"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>Download PDF</button></div></div>
       <div class="tbl-row"><div class="tbl-main"><div class="tbl-primary">Claims Activity Analysis</div><div class="tbl-secondary">Generating... • Est. 2 min</div></div><div class="tbl-right"><span class="badge badge-info">Processing</span><button class="btn btn-ghost btn-sm" disabled style="opacity:0.4">Wait</button></div></div>
-      <div class="tbl-row"><div class="tbl-main"><div class="tbl-primary">IoT Device Health Report</div><div class="tbl-secondary">Scheduled: Mar 10, 2026 • Auto</div></div><div class="tbl-right"><span class="badge badge-sus">Scheduled</span><button class="btn btn-ghost btn-sm">Edit</button></div></div>
+      <div class="tbl-row"><div class="tbl-main"><div class="tbl-primary">IoT Device Health Report</div><div class="tbl-secondary">Scheduled: Mar 10, 2026 • Auto</div></div><div class="tbl-right"><span class="badge badge-sus">Scheduled</span><button class="btn btn-ghost btn-sm" onclick="openModal('edit-sched')">Edit</button></div></div>
     </div>
   </div>
   <div class="card">
@@ -2103,6 +2103,186 @@ setTimeout(function() {
   });
   renderCharts('overview');
 }, 50);
+
+// ══════════════════════════════════════════
+// REPORT LIBRARY — DOWNLOAD PDF
+// ══════════════════════════════════════════
+function downloadReportPDF(title, period, summary, type) {
+  var jspdf = window.jspdf ? window.jspdf.jsPDF : (window.jsPDF || (typeof jsPDF !== 'undefined' ? jsPDF : null));
+  if (!jspdf) { alert('PDF library not loaded. Please refresh and try again.'); return; }
+
+  var doc = new jspdf({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+  var W = doc.internal.pageSize.getWidth();
+  var margin = 18;
+
+  // Header banner
+  doc.setFillColor(15, 45, 100);
+  doc.rect(0, 0, W, 38, 'F');
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(20);
+  doc.setTextColor(255, 255, 255);
+  doc.text('TRACE AI', margin, 16);
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(9);
+  doc.setTextColor(160, 200, 255);
+  doc.text('Healthcare Intelligence Platform', margin, 22);
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(13);
+  doc.setTextColor(255, 255, 255);
+  doc.text(title.toUpperCase(), W - margin, 14, { align: 'right' });
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(8);
+  doc.setTextColor(160, 200, 255);
+  doc.text('Period: ' + period, W - margin, 22, { align: 'right' });
+  doc.text('Generated: ' + new Date().toLocaleString('en-PH', { timeZone: 'Asia/Manila' }), W - margin, 28, { align: 'right' });
+  doc.text('Prepared by: Admin Director', W - margin, 34, { align: 'right' });
+  doc.setFillColor(8, 122, 82);
+  doc.roundedRect(margin, 27, 38, 8, 2, 2, 'F');
+  doc.setTextColor(255, 255, 255);
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(8);
+  doc.text('● CONFIDENTIAL', margin + 19, 32.5, { align: 'center' });
+
+  var y = 50;
+
+  // Report title section
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(10);
+  doc.setTextColor(15, 45, 100);
+  doc.text('REPORT SUMMARY', margin, y);
+  doc.setDrawColor(15, 45, 100);
+  doc.setLineWidth(0.5);
+  doc.line(margin, y + 2, W - margin, y + 2);
+  y += 10;
+
+  // Summary content box
+  doc.setFillColor(245, 248, 255);
+  doc.setDrawColor(200, 215, 235);
+  doc.setLineWidth(0.3);
+  var summaryLines = doc.splitTextToSize(summary, W - margin * 2 - 10);
+  var boxH = summaryLines.length * 6 + 16;
+  doc.roundedRect(margin, y, W - margin * 2, boxH, 3, 3, 'FD');
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(9);
+  doc.setTextColor(30, 50, 80);
+  doc.text(summaryLines, margin + 6, y + 9);
+  y += boxH + 12;
+
+  // Type-specific sections
+  if (type === 'fraud') {
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(10);
+    doc.setTextColor(15, 45, 100);
+    doc.text('FRAUD RISK BREAKDOWN', margin, y);
+    doc.line(margin, y + 2, W - margin, y + 2);
+    y += 8;
+    var metrics = [
+      { label: 'High Risk Claims', value: '7', color: [200, 53, 88] },
+      { label: 'Suspicious Claims', value: '18', color: [160, 126, 10] },
+      { label: 'Cleared / Normal', value: '12', color: [8, 122, 82] },
+      { label: 'Fraud Risk Index', value: '68/100 — Elevated', color: [200, 96, 30] },
+      { label: 'AI Detection Accuracy', value: '94.2%', color: [26, 85, 152] },
+      { label: 'Estimated Fraud Savings', value: '₱94,200', color: [8, 122, 82] }
+    ];
+    metrics.forEach(function(m) {
+      doc.setFillColor(245, 248, 255);
+      doc.setDrawColor(m.color[0], m.color[1], m.color[2]);
+      doc.roundedRect(margin, y, W - margin * 2, 12, 2, 2, 'FD');
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(8.5);
+      doc.setTextColor(60, 80, 110);
+      doc.text(m.label, margin + 5, y + 7.5);
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(m.color[0], m.color[1], m.color[2]);
+      doc.text(m.value, W - margin - 5, y + 7.5, { align: 'right' });
+      y += 15;
+    });
+  }
+
+  if (type === 'compliance') {
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(10);
+    doc.setTextColor(15, 45, 100);
+    doc.text('COMPLIANCE SCORES BY CATEGORY', margin, y);
+    doc.line(margin, y + 2, W - margin, y + 2);
+    y += 8;
+    var scores = [
+      { name: 'Infection Control', pct: 90, color: [8, 122, 82] },
+      { name: 'Medication Safety', pct: 94, color: [26, 85, 152] },
+      { name: 'Staff Protocol', pct: 97, color: [8, 122, 82] },
+      { name: 'Fire Safety', pct: 74, color: [160, 126, 10] },
+      { name: 'PPE Usage', pct: 87, color: [26, 85, 152] },
+      { name: 'Waste Disposal', pct: 62, color: [200, 96, 30] }
+    ];
+    scores.forEach(function(s) {
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(8.5);
+      doc.setTextColor(30, 50, 80);
+      doc.text(s.name, margin, y + 5);
+      doc.setFillColor(225, 232, 245);
+      doc.roundedRect(margin + 80, y, W - margin * 2 - 95, 7, 2, 2, 'F');
+      doc.setFillColor(s.color[0], s.color[1], s.color[2]);
+      doc.roundedRect(margin + 80, y, (W - margin * 2 - 95) * s.pct / 100, 7, 2, 2, 'F');
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(s.color[0], s.color[1], s.color[2]);
+      doc.text(s.pct + '%', W - margin - 3, y + 5.5, { align: 'right' });
+      y += 13;
+    });
+  }
+
+  if (type === 'safety') {
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(10);
+    doc.setTextColor(15, 45, 100);
+    doc.text('ACTIVE INCIDENTS', margin, y);
+    doc.line(margin, y + 2, W - margin, y + 2);
+    y += 8;
+    doc.autoTable({
+      startY: y,
+      head: [['Incident', 'Location', 'Status', 'Time']],
+      body: [
+        ['Pathogen Surge — ICU Ward 3', 'Metro General', 'Active', '09:18 AM'],
+        ['Ventilation Failure — OR Block B', 'City Medical', 'Pending', '08:55 AM'],
+        ['Medication Mix-up — PT-50111', "St. Luke's", 'Review', '08:30 AM'],
+        ['Fire Drill Audit — 74% pass rate', 'National Health', 'Logged', '08:00 AM']
+      ],
+      margin: { left: margin, right: margin },
+      styles: { fontSize: 8, cellPadding: 3, textColor: [30, 50, 80] },
+      headStyles: { fillColor: [15, 45, 100], textColor: [255, 255, 255], fontStyle: 'bold', fontSize: 7.5 },
+      alternateRowStyles: { fillColor: [245, 249, 255] },
+      didParseCell: function(d) {
+        if (d.section === 'body' && d.column.index === 2) {
+          if (d.cell.raw === 'Active')  d.cell.styles.textColor = [200, 53, 88];
+          if (d.cell.raw === 'Pending') d.cell.styles.textColor = [160, 126, 10];
+          if (d.cell.raw === 'Review')  d.cell.styles.textColor = [200, 96, 30];
+        }
+      }
+    });
+    y = doc.lastAutoTable.finalY + 10;
+  }
+
+  // Footer on all pages
+  var totalPages = doc.internal.getNumberOfPages();
+  var pageH = doc.internal.pageSize.getHeight();
+  for (var pg = 1; pg <= totalPages; pg++) {
+    doc.setPage(pg);
+    doc.setFillColor(245, 248, 255);
+    doc.rect(0, pageH - 14, W, 14, 'F');
+    doc.setDrawColor(200, 215, 235);
+    doc.setLineWidth(0.3);
+    doc.line(0, pageH - 14, W, pageH - 14);
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(7);
+    doc.setTextColor(100, 120, 150);
+    doc.text('TRACE AI Healthcare Intelligence Platform — CONFIDENTIAL', margin, pageH - 7);
+    doc.text('Page ' + pg + ' of ' + totalPages, W - margin, pageH - 7, { align: 'right' });
+  }
+
+  var filename = 'TraceAI_' + title.replace(/\s+/g, '_') + '_' + period.replace(/\s+/g, '_') + '.pdf';
+  doc.save(filename);
+  logExportToSupabase(title, 1);
+}
+
 
 </script>
 </body>
