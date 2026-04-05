@@ -199,7 +199,7 @@
     <div class="card">
       <div class="card-head">
         <div class="card-title"><svg viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/></svg>Flagged Claims</div>
-        <div style="display:flex;gap:8px"><button class="btn btn-ghost btn-sm">Export CSV</button><button class="btn btn-danger btn-sm">Review All</button></div>
+        <div style="display:flex;gap:8px"><button class="btn btn-ghost btn-sm" onclick="openModal('export-csv')">Export CSV</button><button class="btn btn-danger btn-sm" onclick="openModal('review-all')">Review All</button></div>
       </div>
       <div class="card-body">
         <div class="chips" style="margin-bottom:14px">
@@ -208,8 +208,8 @@
         <div class="tbl-wrap"><table>
           <thead><tr><th>Claim ID</th><th>Patient</th><th>Hospital</th><th>Amount</th><th>Risk Score</th><th>Level</th><th>Status</th><th>Action</th></tr></thead>
           <tbody>
-            <tr><td class="mono">CLM-88219</td><td class="mono">PT-10042</td><td>Metro General</td><td>₱2,400</td><td><div class="risk-row"><div class="risk-track"><div class="risk-fill" style="width:91%;background:var(--accent-red)"></div></div><span class="risk-num" style="color:var(--accent-red)">91</span></div></td><td><span class="badge badge-high">High Risk</span></td><td><span class="badge badge-info">Under Review</span></td><td><button class="btn btn-danger btn-sm">Investigate</button></td></tr>
-            <tr><td class="mono">CLM-88105</td><td class="mono">PT-20891</td><td>City Medical</td><td>₱8,750</td><td><div class="risk-row"><div class="risk-track"><div class="risk-fill" style="width:85%;background:var(--accent-red)"></div></div><span class="risk-num" style="color:var(--accent-red)">85</span></div></td><td><span class="badge badge-high">High Risk</span></td><td><span class="badge badge-info">Under Review</span></td><td><button class="btn btn-danger btn-sm">Investigate</button></td></tr>
+            <tr><td class="mono">CLM-88219</td><td class="mono">PT-10042</td><td>Metro General</td><td>₱2,400</td><td><div class="risk-row"><div class="risk-track"><div class="risk-fill" style="width:91%;background:var(--accent-red)"></div></div><span class="risk-num" style="color:var(--accent-red)">91</span></div></td><td><span class="badge badge-high">High Risk</span></td><td><span class="badge badge-info">Under Review</span></td><td><button class="btn btn-danger btn-sm" onclick="openModal('inv-88219')">Investigate</button></td></tr>
+            <tr><td class="mono">CLM-88105</td><td class="mono">PT-20891</td><td>City Medical</td><td>₱8,750</td><td><div class="risk-row"><div class="risk-track"><div class="risk-fill" style="width:85%;background:var(--accent-red)"></div></div><span class="risk-num" style="color:var(--accent-red)">85</span></div></td><td><span class="badge badge-high">High Risk</span></td><td><span class="badge badge-info">Under Review</span></td><td><button class="btn btn-danger btn-sm" onclick="openModal('inv-88219')">Investigate</button></td></tr>
             <tr><td class="mono">CLM-87932</td><td class="mono">PT-33810</td><td>St. Luke's</td><td>₱5,200</td><td><div class="risk-row"><div class="risk-track"><div class="risk-fill" style="width:67%;background:var(--accent-yellow)"></div></div><span class="risk-num" style="color:var(--accent-yellow)">67</span></div></td><td><span class="badge badge-sus">Suspicious</span></td><td><span class="badge badge-info">Flagged</span></td><td><button class="btn btn-ghost btn-sm">Review</button></td></tr>
             <tr><td class="mono">CLM-87811</td><td class="mono">PT-44120</td><td>National Health</td><td>₱2,100</td><td><div class="risk-row"><div class="risk-track"><div class="risk-fill" style="width:72%;background:var(--accent-yellow)"></div></div><span class="risk-num" style="color:var(--accent-yellow)">72</span></div></td><td><span class="badge badge-sus">Suspicious</span></td><td><span class="badge badge-info">Flagged</span></td><td><button class="btn btn-ghost btn-sm">Review</button></td></tr>
             <tr><td class="mono">CLM-87780</td><td class="mono">PT-55200</td><td>Riverside</td><td>₱3,900</td><td><div class="risk-row"><div class="risk-track"><div class="risk-fill" style="width:22%;background:var(--accent-green)"></div></div><span class="risk-num" style="color:var(--accent-green)">22</span></div></td><td><span class="badge badge-normal">Normal</span></td><td><span class="badge badge-done">Cleared</span></td><td><button class="btn btn-ghost btn-sm" disabled style="opacity:.4">Done</button></td></tr>
@@ -309,12 +309,12 @@
         <div class="alert-item">
           <div class="alert-icon" style="background:rgba(200,53,88,0.12);color:var(--accent-red)"><svg viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/></svg></div>
           <div class="alert-body"><div class="alert-title">Duplicate Claim Submitted — CLM-88219</div><div class="alert-desc">Same claim submitted twice within 3 minutes at Metro General. AI flagged as high-risk.</div><div class="alert-foot"><span class="alert-time">09:42:18 AM</span><span class="badge badge-high">Critical</span><span class="badge badge-info">Fraud Detection</span></div></div>
-          <div class="alert-right"><button class="btn btn-danger btn-sm">Investigate</button></div>
+          <div class="alert-right"><button class="btn btn-danger btn-sm" onclick="openModal('inv-88219')">Investigate</button></div>
         </div>
         <div class="alert-item">
           <div class="alert-icon" style="background:rgba(200,53,88,0.12);color:var(--accent-red)"><svg viewBox="0 0 24 24"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/></svg></div>
           <div class="alert-body"><div class="alert-title">Abnormal Opioid Pattern — Dr. Santos</div><div class="alert-desc">47 Oxycodone 80mg prescriptions in 24h. Normal threshold is 5. Possible drug diversion.</div><div class="alert-foot"><span class="alert-time">09:31:05 AM</span><span class="badge badge-high">Critical</span><span class="badge badge-info">Prescription Audit</span></div></div>
-          <div class="alert-right"><button class="btn btn-danger btn-sm">Investigate</button></div>
+          <div class="alert-right"><button class="btn btn-danger btn-sm" onclick="openModal('inv-88219')">Investigate</button></div>
         </div>
         <div class="alert-item">
           <div class="alert-icon" style="background:rgba(200,96,30,0.12);color:var(--accent-orange)"><svg viewBox="0 0 24 24"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg></div>
@@ -460,7 +460,7 @@
   <section class="page" id="page-audit">
     <div class="page-header"><h1>Audit Logs</h1><p>Complete system activity trail</p></div>
     <div class="card">
-      <div class="card-head"><div class="card-title"><svg viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>Activity Log</div><button class="btn btn-ghost btn-sm">Export CSV</button></div>
+      <div class="card-head"><div class="card-title"><svg viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>Activity Log</div><button class="btn btn-ghost btn-sm" onclick="openModal('export-csv')">Export CSV</button></div>
       <div class="card-body">
         <div class="tbl-wrap"><table>
           <thead><tr><th>Time</th><th>Event</th><th>User</th><th>IP</th><th>Category</th></tr></thead>
